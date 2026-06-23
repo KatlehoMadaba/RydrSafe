@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -24,14 +25,16 @@ export function LoginPage() {
     resolver: zodResolver(schema),
   })
 
-  if (user) {
-    const redirects: Record<string, string> = {
-      passenger: '/passenger/dashboard',
-      moderator: '/moderator/dashboard',
-      admin: '/admin/dashboard',
+  useEffect(() => {
+    if (user) {
+      const redirects: Record<string, string> = {
+        passenger: '/passenger/dashboard',
+        moderator: '/moderator/dashboard',
+        admin: '/admin/dashboard',
+      }
+      navigate(redirects[user.role] ?? '/passenger/dashboard', { replace: true })
     }
-    navigate(redirects[user.role] ?? '/passenger/dashboard', { replace: true })
-  }
+  }, [user, navigate])
 
   const onSubmit = async (data: FormData) => {
     try {
