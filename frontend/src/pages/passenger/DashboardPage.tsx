@@ -16,8 +16,8 @@ export function PassengerDashboardPage() {
 
   const stats = [
     { label: 'Verifications Done', value: history?.total ?? 0, icon: ShieldCheck, color: 'text-blue-600 bg-blue-50' },
-    { label: 'Flagged Drivers Found', value: history?.items.filter(h => h.result.status === 'Flagged' || h.result.status === 'HighRisk').length ?? 0, icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
-    { label: 'Safe Verifications', value: history?.items.filter(h => h.result.status === 'Safe').length ?? 0, icon: TrendingUp, color: 'text-green-600 bg-green-50' },
+    { label: 'Flagged Drivers Found', value: history?.items?.filter(h => h.result.status === 'Flagged' || h.result.status === 'HighRisk').length ?? 0, icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
+    { label: 'Safe Verifications', value: history?.items?.filter(h => h.result.status === 'Safe').length ?? 0, icon: TrendingUp, color: 'text-green-600 bg-green-50' },
   ]
 
   return (
