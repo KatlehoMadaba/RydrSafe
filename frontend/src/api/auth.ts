@@ -3,7 +3,13 @@ import type { User } from '@/types'
 
 export interface LoginRequest { email: string; password: string }
 export interface RegisterRequest { fullName: string; email: string; password: string }
-export interface AuthResponse { token: string; refreshToken: string; user: User }
+export interface AuthResponse {
+  accessToken: string
+  refreshToken: string
+  fullName: string
+  email: string
+  role: string
+}
 
 export const authApi = {
   login: (data: LoginRequest) =>
