@@ -9,15 +9,16 @@ import { RiskBadge } from '@/components/RiskBadge'
 
 export function PassengerDashboardPage() {
   const { user } = useAuth()
+
   const { data: history } = useQuery({
     queryKey: ['verification-history'],
     queryFn: () => verificationApi.getHistory({ pageSize: 5 }),
   })
 
   const stats = [
-    { label: 'Verifications Done', value: history?.total ?? 0, icon: ShieldCheck, color: 'text-blue-600 bg-blue-50' },
-    { label: 'Flagged Drivers Found', value: history?.items?.filter(h => h.result.status === 'Flagged' || h.result.status === 'HighRisk').length ?? 0, icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
-    { label: 'Safe Verifications', value: history?.items?.filter(h => h.result.status === 'Safe').length ?? 0, icon: TrendingUp, color: 'text-green-600 bg-green-50' },
+    { label: 'Verifications Done', value: history?.totalCount ?? 0, icon: ShieldCheck, color: 'text-blue-600 bg-blue-50' },
+    { label: 'Flagged Drivers Found', value: history?.items?.filter(h => h.status === 'Flagged' || h.status === 'HighRisk').length ?? 0, icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
+    { label: 'Safe Verifications', value: history?.items?.filter(h => h.status === 'Safe').length ?? 0, icon: TrendingUp, color: 'text-green-600 bg-green-50' },
   ]
 
   return (
@@ -92,10 +93,10 @@ export function PassengerDashboardPage() {
               {history.items.map((item) => (
                 <div key={item.id} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
                   <div>
-                    <p className="font-medium text-sm text-gray-900 dark:text-white">{item.result.driverName}</p>
-                    <p className="text-xs text-gray-500">{item.result.registrationNumber}</p>
+                    <p className="font-medium text-sm text-gray-900 dark:text-white">{item.driverName}</p>
+                    <p className="text-xs text-gray-500">{item.registrationNumber}</p>
                   </div>
-                  <RiskBadge status={item.result.status} />
+                  <RiskBadge status={item.status} />
                 </div>
               ))}
             </div>

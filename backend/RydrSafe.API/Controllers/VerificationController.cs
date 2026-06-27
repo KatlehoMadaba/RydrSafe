@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RydrSafe.Application.Features.Verification.Commands;
+using RydrSafe.Application.Features.Verification.Queries;
 
 namespace RydrSafe.API.Controllers;
 
@@ -35,9 +36,11 @@ public class VerificationController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("history")]
-    public IActionResult History()
+    public async Task<IActionResult> History([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        return Ok(new { items = Array.Empty<object>(), total = 0, page = 1, pageSize = 20 });
+        var userId = GetUserId();
+        var result = await mediator.Send(new GetVerificationHistoryQuery(userId, page, pageSize));
+        return Ok(result);
     }
 
     private void ValidateFile(IFormFile file)
