@@ -10,7 +10,7 @@ export interface VerificationHistory {
 export const verificationApi = {
   upload: (files: File[]) => {
     const form = new FormData()
-    files.forEach((f) => form.append('files', f))
+    files.forEach((f, i) => form.append(`image${i + 1}`, f))
     return apiClient
       .post<VerificationResult>('/api/verification/upload', form, {
         headers: { 'Content-Type': 'multipart/form-data' },

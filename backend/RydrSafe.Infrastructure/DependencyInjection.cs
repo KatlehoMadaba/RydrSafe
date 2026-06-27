@@ -23,7 +23,7 @@ public static class DependencyInjection
 
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
-        services.AddScoped<IOcrService, OcrService>();
+        services.AddHttpClient<IOcrService, OcrService>();
         services.AddScoped<IRiskScoringService, RiskScoringService>();
         services.AddScoped<IRealtimeNotificationService, SignalRNotificationService>();
 

@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Upload, X, ShieldCheck, AlertTriangle, Info } from 'lucide-react'
+import { Upload, X, ShieldCheck, AlertTriangle, Info, Flag } from 'lucide-react'
 import { toast } from 'sonner'
+import { Link } from 'react-router-dom'
 import { verificationApi } from '@/api/verification'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -136,9 +137,19 @@ export function VerifyDriverPage() {
                 <span>This driver has been flagged by the community. Consider cancelling your ride and requesting a new driver.</span>
               </div>
             )}
-            <Button variant="outline" className="w-full" onClick={() => setResult(null)}>
-              Verify Another Driver
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setResult(null)}>
+                Verify Another Driver
+              </Button>
+              <Button asChild variant="destructive" className="flex-1">
+                <Link
+                  to="/passenger/report"
+                  state={{ driverName: result.driverName, registrationNumber: result.registrationNumber }}
+                >
+                  <Flag className="h-4 w-4 mr-2" /> Report Driver
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
