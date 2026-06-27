@@ -18,7 +18,8 @@ public class UploadVerificationCommandHandler(
     IVehicleRepository vehicleRepository,
     IReportRepository reportRepository,
     IRiskScoringService riskScoringService,
-    IRealtimeNotificationService realtimeNotificationService) : IRequestHandler<UploadVerificationCommand, VerificationResponse>
+    IRealtimeNotificationService realtimeNotificationService,
+    IVerificationHistoryRepository verificationHistoryRepository) : IRequestHandler<UploadVerificationCommand, VerificationResponse>
 {
     public async Task<VerificationResponse> Handle(UploadVerificationCommand request, CancellationToken cancellationToken)
     {
@@ -56,6 +57,15 @@ public class UploadVerificationCommandHandler(
 
         if (matchedDriver is null)
         {
+            await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
+            {
+                UserId = request.UserId,
+                DriverName = ocr.DriverName,
+                RegistrationNumber = ocr.RegistrationNumber,
+                Status = "Safe",
+                RiskScore = 0,
+            });
+
             return new VerificationResponse(
                 ocr.DriverName, ocr.RegistrationNumber, ocr.PhoneNumber,
                 "Safe", 0, 0, false, null);
@@ -81,6 +91,16 @@ public class UploadVerificationCommandHandler(
                 "Flagged Driver Detected",
                 $"Driver {matchedDriver.DriverName} ({ocr.RegistrationNumber}) matched during verification. Risk score: {riskScore}.");
         }
+
+        await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
+        {
+            UserId = request.UserId,
+            DriverId = matchedDriver.Id,
+            DriverName = matchedDriver.DriverName,
+            RegistrationNumber = ocr.RegistrationNumber,
+            Status = matchedDriver.Status.ToString(),
+            RiskScore = riskScore,
+        });
 
         return new VerificationResponse(
             matchedDriver.DriverName,
