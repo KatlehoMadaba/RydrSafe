@@ -37,8 +37,7 @@ public class VerificationController(IMediator mediator) : ControllerBase
     [HttpGet("history")]
     public IActionResult History()
     {
-        // Verification history is derived from reports submitted by this user
-        return Ok(Array.Empty<object>());
+        return Ok(new { items = Array.Empty<object>(), total = 0, page = 1, pageSize = 20 });
     }
 
     private void ValidateFile(IFormFile file)

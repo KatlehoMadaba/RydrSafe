@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RydrSafe.Application.DTOs;
 using RydrSafe.Application.Features.Auth.Commands;
+using RydrSafe.Application.Features.Auth.Queries;
 
 namespace RydrSafe.API.Controllers;
 
@@ -31,6 +32,17 @@ public class AuthController(IMediator mediator) : ControllerBase
         if (userId is null) return Unauthorized();
 
         var result = await mediator.Send(new RefreshTokenCommand(request.RefreshToken, Guid.Parse(userId)));
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> Me()
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId is null) return Unauthorized();
+
+        var result = await mediator.Send(new GetCurrentUserQuery(Guid.Parse(userId)));
         return Ok(result);
     }
 }
