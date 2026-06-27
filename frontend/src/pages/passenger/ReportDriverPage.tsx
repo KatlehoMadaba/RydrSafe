@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -40,14 +42,22 @@ const severities: { value: FormData['severity']; label: string; color: string }[
 ]
 
 export function ReportDriverPage() {
+  const location = useLocation()
+  const prefill = location.state as { driverName?: string; registrationNumber?: string } | null
+
   const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
 
+  useEffect(() => {
+    if (prefill?.driverName) setValue('driverName', prefill.driverName)
+    if (prefill?.registrationNumber) setValue('registrationNumber', prefill.registrationNumber)
+  }, [])
+
   const mutation = useMutation({
     mutationFn: reportsApi.create,
     onSuccess: () => { toast.success('Report submitted successfully. Our moderators will review it.'); reset() },
-    onError: () => toast.error('Failed to submit report. Please try again.'),
+    onError: (err: any) => toast.error(err?.response?.data?.title ?? err?.message ?? 'Failed to submit report. Please try again.'),
   })
 
   return (

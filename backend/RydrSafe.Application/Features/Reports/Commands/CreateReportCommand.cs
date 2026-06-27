@@ -8,7 +8,8 @@ using RydrSafe.Domain.Enums;
 namespace RydrSafe.Application.Features.Reports.Commands;
 
 public record CreateReportCommand(
-    Guid DriverId,
+    string DriverName,
+    string RegistrationNumber,
     Guid UserId,
     string Category,
     string Severity,
@@ -19,35 +20,55 @@ public class CreateReportCommandValidator : AbstractValidator<CreateReportComman
 {
     public CreateReportCommandValidator()
     {
-        RuleFor(x => x.DriverId).NotEmpty();
+        RuleFor(x => x.DriverName).NotEmpty();
+        RuleFor(x => x.RegistrationNumber).NotEmpty();
         RuleFor(x => x.Category).NotEmpty().Must(c => Enum.TryParse<ReportCategory>(c, out _))
             .WithMessage("Invalid category.");
         RuleFor(x => x.Severity).NotEmpty().Must(s => Enum.TryParse<ReportSeverity>(s, out _))
             .WithMessage("Invalid severity.");
         RuleFor(x => x.Description).NotEmpty().MaximumLength(2000);
-        RuleFor(x => x.IncidentDate).LessThanOrEqualTo(DateTime.UtcNow);
+        RuleFor(x => x.IncidentDate).LessThanOrEqualTo(DateTime.Now);
     }
 }
 
 public class CreateReportCommandHandler(
     IReportRepository reportRepository,
     IDriverRepository driverRepository,
+    IVehicleRepository vehicleRepository,
     IRiskScoringService riskScoringService,
     IRealtimeNotificationService realtimeNotificationService) : IRequestHandler<CreateReportCommand, Guid>
 {
     public async Task<Guid> Handle(CreateReportCommand request, CancellationToken cancellationToken)
     {
-        var driver = await driverRepository.GetByIdAsync(request.DriverId)
-            ?? throw new KeyNotFoundException("Driver not found.");
+        // Look up driver by registration number; create if this is the first report about them
+        var driver = await driverRepository.GetByRegistrationNumberAsync(request.RegistrationNumber);
+
+        if (driver is null)
+        {
+            driver = new Driver
+            {
+                DriverName = request.DriverName,
+                Status = DriverStatus.Safe,
+                RiskScore = 0,
+            };
+            await driverRepository.AddAsync(driver);
+
+            var vehicle = new Vehicle
+            {
+                DriverId = driver.Id,
+                RegistrationNumber = request.RegistrationNumber.ToUpper(),
+            };
+            await vehicleRepository.AddAsync(vehicle);
+        }
 
         var report = new Report
         {
-            DriverId = request.DriverId,
+            DriverId = driver.Id,
             UserId = request.UserId,
             Category = Enum.Parse<ReportCategory>(request.Category),
             Severity = Enum.Parse<ReportSeverity>(request.Severity),
             Description = request.Description,
-            IncidentDate = request.IncidentDate
+            IncidentDate = DateTime.SpecifyKind(request.IncidentDate, DateTimeKind.Utc)
         };
 
         await reportRepository.AddAsync(report);

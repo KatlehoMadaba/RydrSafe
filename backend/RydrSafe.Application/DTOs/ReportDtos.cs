@@ -1,7 +1,8 @@
 namespace RydrSafe.Application.DTOs;
 
 public record CreateReportRequest(
-    Guid DriverId,
+    string DriverName,
+    string RegistrationNumber,
     string Category,
     string Severity,
     string Description,
