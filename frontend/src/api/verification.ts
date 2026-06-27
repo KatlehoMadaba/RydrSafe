@@ -1,10 +1,13 @@
 import { apiClient } from './client'
-import type { VerificationResult, PaginatedResponse } from '@/types'
+import type { VerificationResult, PaginatedResponse, DriverStatus } from '@/types'
 
 export interface VerificationHistory {
   id: string
-  result: VerificationResult
-  createdAt: string
+  driverName: string | null
+  registrationNumber: string | null
+  status: DriverStatus
+  riskScore: number
+  verifiedAt: string
 }
 
 export const verificationApi = {

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Upload, X, ShieldCheck, AlertTriangle, Info, Flag } from 'lucide-react'
 import { toast } from 'sonner'
 import { Link } from 'react-router-dom'
@@ -19,10 +19,11 @@ export function VerifyDriverPage() {
   const [result, setResult] = useState<VerificationResult | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const qc = useQueryClient()
 
-  const mutation = useMutation({
+  const mutation = useMutation<VerificationResult>({
     mutationFn: () => verificationApi.upload(files),
-    onSuccess: (data) => { setResult(data); setFiles([]) },
+    onSuccess: (data) => { setResult(data); setFiles([]); qc.invalidateQueries({ queryKey: ['verification-history'] }) },
     onError: () => toast.error('Verification failed. Please try again.'),
   })
 

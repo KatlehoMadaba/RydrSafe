@@ -35,17 +35,14 @@ export function HistoryPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{item.result.driverName || 'Unknown Driver'}</h3>
-                    <RiskBadge status={item.result.status} />
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{item.driverName || 'Unknown Driver'}</h3>
+                    <RiskBadge status={item.status} />
                   </div>
-                  <p className="text-sm text-gray-500">{item.result.registrationNumber}</p>
-                  {item.result.vehicleMake && (
-                    <p className="text-sm text-gray-500">{item.result.vehicleMake} {item.result.vehicleModel}</p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-1">{new Date(item.createdAt).toLocaleDateString()}</p>
+                  <p className="text-sm text-gray-500">{item.registrationNumber}</p>
+                  <p className="text-xs text-gray-400 mt-1">{new Date(item.verifiedAt).toLocaleDateString()}</p>
                 </div>
                 <div className="w-40">
-                  <RiskScore score={item.result.riskScore} />
+                  <RiskScore score={item.riskScore} />
                 </div>
               </div>
             </CardContent>
