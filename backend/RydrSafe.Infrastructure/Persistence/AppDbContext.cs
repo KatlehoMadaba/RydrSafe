@@ -12,6 +12,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Report> Reports => Set<Report>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<VerificationHistory> VerificationHistories => Set<VerificationHistory>();
+    public DbSet<DriverFollow> DriverFollows => Set<DriverFollow>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -62,6 +63,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(n => n.Title).HasMaxLength(255).IsRequired();
             e.Property(n => n.Message).IsRequired();
             e.HasOne(n => n.User).WithMany(u => u.Notifications).HasForeignKey(n => n.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<DriverFollow>(e =>
+        {
+            e.HasKey(f => f.Id);
+            e.HasIndex(f => new { f.UserId, f.DriverId }).IsUnique();
+            e.HasOne(f => f.User).WithMany().HasForeignKey(f => f.UserId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(f => f.Driver).WithMany().HasForeignKey(f => f.DriverId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<VerificationHistory>(e =>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { verificationApi } from '@/api/verification'
+import { followApi } from '@/api/follow'
 import { RiskBadge } from '@/components/RiskBadge'
 
 export function PassengerDashboardPage() {
@@ -13,6 +14,11 @@ export function PassengerDashboardPage() {
   const { data: recentHistory } = useQuery({
     queryKey: ['verification-history-recent'],
     queryFn: () => verificationApi.getHistory({ pageSize: 5 }),
+  })
+
+  const { data: followedDrivers } = useQuery({
+    queryKey: ['followed-drivers'],
+    queryFn: () => followApi.getFollowedDrivers(),
   })
 
   const { data: verificationStats } = useQuery({
@@ -84,6 +90,30 @@ export function PassengerDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {followedDrivers && followedDrivers.length > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-500" />
+              Flagged Drivers You're Tracking
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {followedDrivers.map((d: any) => (
+                <div key={d.id} className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2 last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{d.driverName}</p>
+                    <p className="text-xs text-gray-500">{d.registrationNumber} · {d.reportCount} report{d.reportCount !== 1 ? 's' : ''}</p>
+                  </div>
+                  <RiskBadge status={d.status} />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {recentHistory && recentHistory.items.length > 0 && (
         <Card>

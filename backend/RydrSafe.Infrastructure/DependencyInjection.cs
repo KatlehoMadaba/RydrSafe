@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IVerificationHistoryRepository, VerificationHistoryRepository>();
+        services.AddScoped<IDriverFollowRepository, DriverFollowRepository>();
 
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();

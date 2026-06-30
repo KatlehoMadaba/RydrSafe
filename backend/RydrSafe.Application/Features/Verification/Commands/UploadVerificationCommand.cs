@@ -19,7 +19,9 @@ public class UploadVerificationCommandHandler(
     IReportRepository reportRepository,
     IRiskScoringService riskScoringService,
     IRealtimeNotificationService realtimeNotificationService,
-    IVerificationHistoryRepository verificationHistoryRepository) : IRequestHandler<UploadVerificationCommand, VerificationResponse>
+    IVerificationHistoryRepository verificationHistoryRepository,
+    IDriverFollowRepository driverFollowRepository,
+    INotificationRepository notificationRepository) : IRequestHandler<UploadVerificationCommand, VerificationResponse>
 {
     public async Task<VerificationResponse> Handle(UploadVerificationCommand request, CancellationToken cancellationToken)
     {
@@ -102,22 +104,27 @@ public class UploadVerificationCommandHandler(
                 await realtimeNotificationService.NotifyModeratorsAsync(
                     "Flagged Driver Detected",
                     $"Driver {matchedDriver.DriverName} ({ocr.RegistrationNumber}) matched during verification. Risk score: {riskScore}.");
+
+                var followers = await driverFollowRepository.GetFollowersByDriverIdAsync(matchedDriver.Id);
+                var label = matchedDriver.Status == DriverStatus.HighRisk ? "High Risk" : "Flagged";
+                foreach (var follow in followers)
+                {
+                    var title = $"Driver Alert: {matchedDriver.DriverName}";
+                    var message = $"A driver you are following ({matchedDriver.DriverName}) has been marked as {label} with a risk score of {riskScore}.";
+                    await notificationRepository.AddAsync(new Notification
+                    {
+                        UserId = follow.UserId,
+                        Title = title,
+                        Message = message,
+                    });
+                    await realtimeNotificationService.NotifyUserAsync(follow.UserId, title, message);
+                }
             }
             catch
             {
                 // notification failure must not prevent the verification response from being returned
             }
         }
-
-        await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
-        {
-            UserId = request.UserId,
-            DriverId = matchedDriver.Id,
-            DriverName = matchedDriver.DriverName,
-            RegistrationNumber = ocr.RegistrationNumber,
-            Status = matchedDriver.Status.ToString(),
-            RiskScore = riskScore,
-        });
 
         return new VerificationResponse(
             matchedDriver.DriverName,

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RydrSafe.Application.DTOs;
 using RydrSafe.Application.Features.Verification.Commands;
 using RydrSafe.Application.Features.Verification.Queries;
 
@@ -32,6 +33,18 @@ public class VerificationController(IMediator mediator) : ControllerBase
             image3?.OpenReadStream(),
             userId));
 
+        return Ok(result);
+    }
+
+    [HttpPost("manual")]
+    public async Task<IActionResult> Manual([FromBody] ManualVerificationRequest body)
+    {
+        var userId = GetUserId();
+        var result = await mediator.Send(new ManualVerificationCommand(
+            body.RegistrationNumber,
+            body.DriverName,
+            body.PhoneNumber,
+            userId));
         return Ok(result);
     }
 
