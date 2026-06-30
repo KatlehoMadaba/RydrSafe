@@ -54,6 +54,9 @@ public class DriverRepository(AppDbContext db) : IDriverRepository
 
     public async Task<int> CountAsync() => await db.Drivers.CountAsync();
 
+    public async Task<int> CountByStatusAsync(params RydrSafe.Domain.Enums.DriverStatus[] statuses) =>
+        await db.Drivers.CountAsync(d => statuses.Contains(d.Status));
+
     private static int LevenshteinDistance(string a, string b)
     {
         int[,] dp = new int[a.Length + 1, b.Length + 1];

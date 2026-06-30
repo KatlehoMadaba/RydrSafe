@@ -13,4 +13,5 @@ public interface IDriverRepository
     Task AddAsync(Driver driver);
     Task UpdateAsync(Driver driver);
     Task<int> CountAsync();
+    Task<int> CountByStatusAsync(params RydrSafe.Domain.Enums.DriverStatus[] statuses);
 }

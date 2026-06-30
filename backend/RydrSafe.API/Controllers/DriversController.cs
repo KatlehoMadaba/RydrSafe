@@ -32,4 +32,11 @@ public class DriversController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new SearchDriversQuery(q));
         return Ok(result);
     }
+
+    [HttpGet("flagged-count")]
+    public async Task<IActionResult> GetFlaggedCount()
+    {
+        var count = await mediator.Send(new GetFlaggedDriversCountQuery());
+        return Ok(new { count });
+    }
 }
