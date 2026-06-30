@@ -51,8 +51,19 @@ public class VerificationController(IMediator mediator) : ControllerBase
     [HttpGet("history")]
     public async Task<IActionResult> History([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
+        if (page < 1) return BadRequest("page must be at least 1.");
+        if (pageSize < 1 || pageSize > 100) return BadRequest("pageSize must be between 1 and 100.");
+
         var userId = GetUserId();
         var result = await mediator.Send(new GetVerificationHistoryQuery(userId, page, pageSize));
+        return Ok(result);
+    }
+
+    [HttpGet("stats")]
+    public async Task<IActionResult> Stats()
+    {
+        var userId = GetUserId();
+        var result = await mediator.Send(new GetVerificationStatsQuery(userId));
         return Ok(result);
     }
 
