@@ -19,3 +19,5 @@ public record VerificationHistoryDto(
     int RiskScore,
     DateTime VerifiedAt
 );
+
+public record VerificationStatsDto(int Total, int Flagged, int Safe);

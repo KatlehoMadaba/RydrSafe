@@ -16,11 +16,28 @@ public class VerificationHistoryRepository(AppDbContext db) : IVerificationHisto
     {
         var query = db.VerificationHistories
             .Where(v => v.UserId == userId)
-            .OrderByDescending(v => v.VerifiedAt);
+            .OrderByDescending(v => v.VerifiedAt)
+            .ThenBy(v => v.Id);
 
         var total = await query.CountAsync();
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
         return (items, total);
+    }
+
+    public async Task<(int Total, int Flagged, int Safe)> GetStatsByUserIdAsync(Guid userId)
+    {
+        var stats = await db.VerificationHistories
+            .Where(v => v.UserId == userId)
+            .GroupBy(_ => 1)
+            .Select(g => new
+            {
+                Total = g.Count(),
+                Flagged = g.Count(v => v.Status == "Flagged" || v.Status == "HighRisk"),
+                Safe = g.Count(v => v.Status == "Safe"),
+            })
+            .FirstOrDefaultAsync();
+
+        return (stats?.Total ?? 0, stats?.Flagged ?? 0, stats?.Safe ?? 0);
     }
 }
