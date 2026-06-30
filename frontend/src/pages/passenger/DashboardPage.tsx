@@ -10,15 +10,20 @@ import { RiskBadge } from '@/components/RiskBadge'
 export function PassengerDashboardPage() {
   const { user } = useAuth()
 
-  const { data: history } = useQuery({
-    queryKey: ['verification-history'],
+  const { data: recentHistory } = useQuery({
+    queryKey: ['verification-history-recent'],
     queryFn: () => verificationApi.getHistory({ pageSize: 5 }),
   })
 
+  const { data: verificationStats } = useQuery({
+    queryKey: ['verification-stats'],
+    queryFn: () => verificationApi.getStats(),
+  })
+
   const stats = [
-    { label: 'Verifications Done', value: history?.totalCount ?? 0, icon: ShieldCheck, color: 'text-blue-600 bg-blue-50' },
-    { label: 'Flagged Drivers Found', value: history?.items?.filter(h => h.status === 'Flagged' || h.status === 'HighRisk').length ?? 0, icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
-    { label: 'Safe Verifications', value: history?.items?.filter(h => h.status === 'Safe').length ?? 0, icon: TrendingUp, color: 'text-green-600 bg-green-50' },
+    { label: 'Verifications Done', value: verificationStats?.total ?? 0, icon: ShieldCheck, color: 'text-blue-600 bg-blue-50' },
+    { label: 'Flagged Drivers Found', value: verificationStats?.flagged ?? 0, icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
+    { label: 'Safe Verifications', value: verificationStats?.safe ?? 0, icon: TrendingUp, color: 'text-green-600 bg-green-50' },
   ]
 
   return (
@@ -80,7 +85,7 @@ export function PassengerDashboardPage() {
         </Card>
       </div>
 
-      {history && history.items.length > 0 && (
+      {recentHistory && recentHistory.items.length > 0 && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Recent Verifications</CardTitle>
@@ -90,7 +95,7 @@ export function PassengerDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {history.items.map((item) => (
+              {recentHistory.items.map((item) => (
                 <div key={item.id} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
                   <div>
                     <p className="font-medium text-sm text-gray-900 dark:text-white">{item.driverName}</p>

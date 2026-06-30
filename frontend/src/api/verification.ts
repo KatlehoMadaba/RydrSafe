@@ -10,6 +10,12 @@ export interface VerificationHistory {
   verifiedAt: string
 }
 
+export interface VerificationStats {
+  total: number
+  flagged: number
+  safe: number
+}
+
 export const verificationApi = {
   upload: (files: File[]) => {
     const form = new FormData()
@@ -23,5 +29,9 @@ export const verificationApi = {
   getHistory: (params?: { page?: number; pageSize?: number }) =>
     apiClient
       .get<PaginatedResponse<VerificationHistory>>('/api/verification/history', { params })
+      .then((r) => r.data),
+  getStats: () =>
+    apiClient
+      .get<VerificationStats>('/api/verification/stats')
       .then((r) => r.data),
 }
