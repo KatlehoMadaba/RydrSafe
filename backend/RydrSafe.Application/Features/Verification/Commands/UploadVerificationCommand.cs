@@ -85,11 +85,28 @@ public class UploadVerificationCommandHandler(
         matchedDriver.UpdatedAt = DateTime.UtcNow;
         await driverRepository.UpdateAsync(matchedDriver);
 
+        await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
+        {
+            UserId = request.UserId,
+            DriverId = matchedDriver.Id,
+            DriverName = matchedDriver.DriverName,
+            RegistrationNumber = ocr.RegistrationNumber,
+            Status = matchedDriver.Status.ToString(),
+            RiskScore = riskScore,
+        });
+
         if (matchedDriver.Status is DriverStatus.Flagged or DriverStatus.HighRisk)
         {
-            await realtimeNotificationService.NotifyModeratorsAsync(
-                "Flagged Driver Detected",
-                $"Driver {matchedDriver.DriverName} ({ocr.RegistrationNumber}) matched during verification. Risk score: {riskScore}.");
+            try
+            {
+                await realtimeNotificationService.NotifyModeratorsAsync(
+                    "Flagged Driver Detected",
+                    $"Driver {matchedDriver.DriverName} ({ocr.RegistrationNumber}) matched during verification. Risk score: {riskScore}.");
+            }
+            catch
+            {
+                // notification failure must not prevent the verification response from being returned
+            }
         }
 
         await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
