@@ -12,10 +12,10 @@ export function AdminDashboardPage() {
   const { data: drivers } = useQuery({ queryKey: ['drivers-admin'], queryFn: () => driversApi.getAll({ pageSize: 1 }) })
 
   const stats = [
-    { label: 'Total Users', value: users?.total ?? 0, icon: Users, color: 'text-blue-600 bg-blue-50' },
-    { label: 'Moderators', value: moderators?.total ?? 0, icon: UserCheck, color: 'text-purple-600 bg-purple-50' },
-    { label: 'Total Reports', value: reports?.total ?? 0, icon: FileText, color: 'text-orange-600 bg-orange-50' },
-    { label: 'Drivers in DB', value: drivers?.total ?? 0, icon: Car, color: 'text-gray-600 bg-gray-50' },
+    { label: 'Total Users', value: users?.totalCount ?? 0, icon: Users, color: 'text-blue-600 bg-blue-50' },
+    { label: 'Moderators', value: moderators?.totalCount ?? 0, icon: UserCheck, color: 'text-purple-600 bg-purple-50' },
+    { label: 'Total Reports', value: reports?.totalCount ?? 0, icon: FileText, color: 'text-orange-600 bg-orange-50' },
+    { label: 'Drivers in DB', value: drivers?.totalCount ?? 0, icon: Car, color: 'text-gray-600 bg-gray-50' },
   ]
 
   return (

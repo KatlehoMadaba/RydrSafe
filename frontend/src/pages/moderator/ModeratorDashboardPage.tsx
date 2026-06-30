@@ -16,9 +16,9 @@ export function ModeratorDashboardPage() {
 
   const stats = [
     { label: 'Pending Reports', value: pending, icon: Clock, color: 'text-yellow-600 bg-yellow-50' },
-    { label: 'Total Reports', value: reports?.total ?? 0, icon: FileText, color: 'text-blue-600 bg-blue-50' },
+    { label: 'Total Reports', value: reports?.totalCount ?? 0, icon: FileText, color: 'text-blue-600 bg-blue-50' },
     { label: 'Flagged Drivers', value: flagged, icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
-    { label: 'Total Drivers', value: drivers?.total ?? 0, icon: Car, color: 'text-gray-600 bg-gray-50' },
+    { label: 'Total Drivers', value: drivers?.totalCount ?? 0, icon: Car, color: 'text-gray-600 bg-gray-50' },
   ]
 
   return (
