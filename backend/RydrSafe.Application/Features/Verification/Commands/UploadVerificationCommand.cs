@@ -87,28 +87,6 @@ public class UploadVerificationCommandHandler(
         matchedDriver.UpdatedAt = DateTime.UtcNow;
         await driverRepository.UpdateAsync(matchedDriver);
 
-        if (matchedDriver.Status is DriverStatus.Flagged or DriverStatus.HighRisk)
-        {
-            await realtimeNotificationService.NotifyModeratorsAsync(
-                "Flagged Driver Detected",
-                $"Driver {matchedDriver.DriverName} ({ocr.RegistrationNumber}) matched during verification. Risk score: {riskScore}.");
-
-            var followers = await driverFollowRepository.GetFollowersByDriverIdAsync(matchedDriver.Id);
-            var label = matchedDriver.Status == DriverStatus.HighRisk ? "High Risk" : "Flagged";
-            foreach (var follow in followers)
-            {
-                var title = $"Driver Alert: {matchedDriver.DriverName}";
-                var message = $"A driver you are following ({matchedDriver.DriverName}) has been marked as {label} with a risk score of {riskScore}.";
-                await notificationRepository.AddAsync(new Notification
-                {
-                    UserId = follow.UserId,
-                    Title = title,
-                    Message = message,
-                });
-                await realtimeNotificationService.NotifyUserAsync(follow.UserId, title, message);
-            }
-        }
-
         await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
         {
             UserId = request.UserId,
@@ -118,6 +96,35 @@ public class UploadVerificationCommandHandler(
             Status = matchedDriver.Status.ToString(),
             RiskScore = riskScore,
         });
+
+        if (matchedDriver.Status is DriverStatus.Flagged or DriverStatus.HighRisk)
+        {
+            try
+            {
+                await realtimeNotificationService.NotifyModeratorsAsync(
+                    "Flagged Driver Detected",
+                    $"Driver {matchedDriver.DriverName} ({ocr.RegistrationNumber}) matched during verification. Risk score: {riskScore}.");
+
+                var followers = await driverFollowRepository.GetFollowersByDriverIdAsync(matchedDriver.Id);
+                var label = matchedDriver.Status == DriverStatus.HighRisk ? "High Risk" : "Flagged";
+                foreach (var follow in followers)
+                {
+                    var title = $"Driver Alert: {matchedDriver.DriverName}";
+                    var message = $"A driver you are following ({matchedDriver.DriverName}) has been marked as {label} with a risk score of {riskScore}.";
+                    await notificationRepository.AddAsync(new Notification
+                    {
+                        UserId = follow.UserId,
+                        Title = title,
+                        Message = message,
+                    });
+                    await realtimeNotificationService.NotifyUserAsync(follow.UserId, title, message);
+                }
+            }
+            catch
+            {
+                // notification failure must not prevent the verification response from being returned
+            }
+        }
 
         return new VerificationResponse(
             matchedDriver.DriverName,

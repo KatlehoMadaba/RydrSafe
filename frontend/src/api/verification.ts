@@ -10,6 +10,12 @@ export interface VerificationHistory {
   verifiedAt: string
 }
 
+export interface VerificationStats {
+  total: number
+  flagged: number
+  safe: number
+}
+
 export const verificationApi = {
   upload: (files: File[]) => {
     const form = new FormData()
@@ -36,4 +42,8 @@ export const verificationApi = {
     apiClient.post(`/api/drivers/${driverId}/follow`),
   unfollowDriver: (driverId: string) =>
     apiClient.delete(`/api/drivers/${driverId}/follow`),
+  getStats: () =>
+    apiClient
+      .get<VerificationStats>('/api/verification/stats')
+      .then((r) => r.data),
 }
