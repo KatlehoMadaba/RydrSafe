@@ -1,5 +1,11 @@
 namespace RydrSafe.Application.DTOs;
 
+public record ManualVerificationRequest(
+    string? RegistrationNumber,
+    string? DriverName,
+    string? PhoneNumber
+);
+
 public record VerificationResponse(
     string? DriverName,
     string? RegistrationNumber,

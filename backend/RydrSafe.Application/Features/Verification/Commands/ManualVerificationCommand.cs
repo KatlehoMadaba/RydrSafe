@@ -6,14 +6,13 @@ using RydrSafe.Domain.Enums;
 
 namespace RydrSafe.Application.Features.Verification.Commands;
 
-public record UploadVerificationCommand(
-    Stream Image1,
-    Stream? Image2,
-    Stream? Image3,
+public record ManualVerificationCommand(
+    string? RegistrationNumber,
+    string? DriverName,
+    string? PhoneNumber,
     Guid UserId) : IRequest<VerificationResponse>;
 
-public class UploadVerificationCommandHandler(
-    IOcrService ocrService,
+public class ManualVerificationCommandHandler(
     IDriverRepository driverRepository,
     IVehicleRepository vehicleRepository,
     IReportRepository reportRepository,
@@ -21,55 +20,49 @@ public class UploadVerificationCommandHandler(
     IRealtimeNotificationService realtimeNotificationService,
     IVerificationHistoryRepository verificationHistoryRepository,
     IDriverFollowRepository driverFollowRepository,
-    INotificationRepository notificationRepository) : IRequestHandler<UploadVerificationCommand, VerificationResponse>
+    INotificationRepository notificationRepository)
+    : IRequestHandler<ManualVerificationCommand, VerificationResponse>
 {
-    public async Task<VerificationResponse> Handle(UploadVerificationCommand request, CancellationToken cancellationToken)
+    public async Task<VerificationResponse> Handle(ManualVerificationCommand request, CancellationToken cancellationToken)
     {
-        var ocr = await ocrService.ExtractAsync(request.Image1);
-
-        if (request.Image2 is not null)
+        if (string.IsNullOrWhiteSpace(request.RegistrationNumber) &&
+            string.IsNullOrWhiteSpace(request.DriverName) &&
+            string.IsNullOrWhiteSpace(request.PhoneNumber))
         {
-            var ocr2 = await ocrService.ExtractAsync(request.Image2);
-            ocr = MergeOcrResults(ocr, ocr2);
+            throw new ArgumentException("At least one of registration number, driver name, or phone number must be provided.");
         }
 
-        if (request.Image3 is not null)
-        {
-            var ocr3 = await ocrService.ExtractAsync(request.Image3);
-            ocr = MergeOcrResults(ocr, ocr3);
-        }
+        Domain.Entities.Driver? matchedDriver = null;
 
-        Driver? matchedDriver = null;
-
-        if (!string.IsNullOrWhiteSpace(ocr.RegistrationNumber))
+        if (!string.IsNullOrWhiteSpace(request.RegistrationNumber))
         {
-            var vehicle = await vehicleRepository.GetByRegistrationNumberAsync(ocr.RegistrationNumber);
+            var vehicle = await vehicleRepository.GetByRegistrationNumberAsync(request.RegistrationNumber);
             if (vehicle is not null)
                 matchedDriver = await driverRepository.GetByIdAsync(vehicle.DriverId);
         }
 
-        if (matchedDriver is null && !string.IsNullOrWhiteSpace(ocr.PhoneNumber))
-            matchedDriver = await driverRepository.GetByPhoneNumberAsync(ocr.PhoneNumber);
+        if (matchedDriver is null && !string.IsNullOrWhiteSpace(request.PhoneNumber))
+            matchedDriver = await driverRepository.GetByPhoneNumberAsync(request.PhoneNumber);
 
-        if (matchedDriver is null && !string.IsNullOrWhiteSpace(ocr.DriverName))
+        if (matchedDriver is null && !string.IsNullOrWhiteSpace(request.DriverName))
         {
-            var candidates = await driverRepository.GetByNameFuzzyAsync(ocr.DriverName);
+            var candidates = await driverRepository.GetByNameFuzzyAsync(request.DriverName);
             matchedDriver = candidates.FirstOrDefault();
         }
 
         if (matchedDriver is null)
         {
-            await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
+            await verificationHistoryRepository.AddAsync(new VerificationHistory
             {
                 UserId = request.UserId,
-                DriverName = ocr.DriverName,
-                RegistrationNumber = ocr.RegistrationNumber,
+                DriverName = request.DriverName,
+                RegistrationNumber = request.RegistrationNumber,
                 Status = "Safe",
                 RiskScore = 0,
             });
 
             return new VerificationResponse(
-                ocr.DriverName, ocr.RegistrationNumber, ocr.PhoneNumber,
+                request.DriverName, request.RegistrationNumber, request.PhoneNumber,
                 "Safe", 0, 0, false, null);
         }
 
@@ -91,7 +84,7 @@ public class UploadVerificationCommandHandler(
         {
             await realtimeNotificationService.NotifyModeratorsAsync(
                 "Flagged Driver Detected",
-                $"Driver {matchedDriver.DriverName} ({ocr.RegistrationNumber}) matched during verification. Risk score: {riskScore}.");
+                $"Driver {matchedDriver.DriverName} ({request.RegistrationNumber}) matched during manual verification. Risk score: {riskScore}.");
 
             var followers = await driverFollowRepository.GetFollowersByDriverIdAsync(matchedDriver.Id);
             var label = matchedDriver.Status == DriverStatus.HighRisk ? "High Risk" : "Flagged";
@@ -109,19 +102,9 @@ public class UploadVerificationCommandHandler(
             }
         }
 
-        await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
-        {
-            UserId = request.UserId,
-            DriverId = matchedDriver.Id,
-            DriverName = matchedDriver.DriverName,
-            RegistrationNumber = ocr.RegistrationNumber,
-            Status = matchedDriver.Status.ToString(),
-            RiskScore = riskScore,
-        });
-
         return new VerificationResponse(
             matchedDriver.DriverName,
-            ocr.RegistrationNumber,
+            request.RegistrationNumber,
             matchedDriver.PhoneNumber,
             matchedDriver.Status.ToString(),
             riskScore,
@@ -129,11 +112,4 @@ public class UploadVerificationCommandHandler(
             true,
             matchedDriver.Id);
     }
-
-    private static OcrResult MergeOcrResults(OcrResult a, OcrResult b) => new(
-        a.DriverName ?? b.DriverName,
-        a.RegistrationNumber ?? b.RegistrationNumber,
-        a.PhoneNumber ?? b.PhoneNumber,
-        a.VehicleMake ?? b.VehicleMake,
-        a.VehicleModel ?? b.VehicleModel);
 }
