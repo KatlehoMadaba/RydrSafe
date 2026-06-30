@@ -109,6 +109,16 @@ public class UploadVerificationCommandHandler(
             }
         }
 
+        await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
+        {
+            UserId = request.UserId,
+            DriverId = matchedDriver.Id,
+            DriverName = matchedDriver.DriverName,
+            RegistrationNumber = ocr.RegistrationNumber,
+            Status = matchedDriver.Status.ToString(),
+            RiskScore = riskScore,
+        });
+
         return new VerificationResponse(
             matchedDriver.DriverName,
             ocr.RegistrationNumber,
