@@ -18,6 +18,6 @@ public class GetReportByIdQueryHandler(
             r.Id, r.DriverId, r.Driver?.DriverName ?? string.Empty,
             r.UserId, r.User?.FullName ?? string.Empty,
             r.Category.ToString(), r.Severity.ToString(),
-            r.Description, r.IncidentDate, r.Status.ToString(), r.CreatedAt);
+            r.Description, r.IncidentDate, r.Status.ToString(), r.CreatedAt, r.EvidenceUrls);
     }
 }
