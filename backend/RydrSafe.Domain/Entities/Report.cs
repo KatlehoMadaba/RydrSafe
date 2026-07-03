@@ -12,6 +12,7 @@ public class Report
     public string Description { get; set; } = string.Empty;
     public DateTime IncidentDate { get; set; }
     public ReportStatus Status { get; set; } = ReportStatus.Pending;
+    public List<string> EvidenceUrls { get; set; } = [];
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Driver Driver { get; set; } = null!;
