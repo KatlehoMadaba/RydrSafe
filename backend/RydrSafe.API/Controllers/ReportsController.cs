@@ -13,13 +13,35 @@ namespace RydrSafe.API.Controllers;
 [Authorize]
 public class ReportsController(IMediator mediator) : ControllerBase
 {
+    private static readonly string[] AllowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+    private const long MaxEvidenceFileSize = 10 * 1024 * 1024; // 10MB
+
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateReportRequest request)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> Create([FromForm] CreateReportRequest request, IFormFileCollection? evidence)
     {
+        if (evidence is { Count: > 3 })
+            return BadRequest("A maximum of 3 evidence files may be attached.");
+
+        var evidenceStreams = new List<(Stream Data, string FileName)>();
+        if (evidence is not null)
+        {
+            foreach (var file in evidence)
+            {
+                if (file.Length > MaxEvidenceFileSize)
+                    return BadRequest($"{file.FileName} exceeds the 10MB limit.");
+                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                if (!AllowedExtensions.Contains(ext))
+                    return BadRequest($"File type {ext} is not supported. Use jpg, jpeg, png, or webp.");
+                evidenceStreams.Add((file.OpenReadStream(), file.FileName));
+            }
+        }
+
         var userId = GetUserId();
         var id = await mediator.Send(new CreateReportCommand(
             request.DriverName, request.RegistrationNumber, userId,
-            request.Category, request.Severity, request.Description, request.IncidentDate));
+            request.Category, request.Severity, request.Description, request.IncidentDate,
+            evidenceStreams.Count > 0 ? evidenceStreams : null));
         return CreatedAtAction(nameof(GetById), new { id }, new { id });
     }
 
