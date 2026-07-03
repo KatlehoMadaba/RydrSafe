@@ -27,17 +27,10 @@ public class VerificationHistoryRepository(AppDbContext db) : IVerificationHisto
 
     public async Task<(int Total, int Flagged, int Safe)> GetStatsByUserIdAsync(Guid userId)
     {
-        var stats = await db.VerificationHistories
-            .Where(v => v.UserId == userId)
-            .GroupBy(_ => 1)
-            .Select(g => new
-            {
-                Total = g.Count(),
-                Flagged = g.Count(v => v.Status == "Flagged" || v.Status == "HighRisk"),
-                Safe = g.Count(v => v.Status == "Safe"),
-            })
-            .FirstOrDefaultAsync();
-
-        return (stats?.Total ?? 0, stats?.Flagged ?? 0, stats?.Safe ?? 0);
+        var baseQuery = db.VerificationHistories.Where(v => v.UserId == userId);
+        var total   = await baseQuery.CountAsync();
+        var flagged = await baseQuery.CountAsync(v => v.Status == "Flagged" || v.Status == "HighRisk");
+        var safe    = await baseQuery.CountAsync(v => v.Status == "Safe");
+        return (total, flagged, safe);
     }
 }

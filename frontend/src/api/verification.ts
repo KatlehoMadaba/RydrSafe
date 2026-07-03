@@ -34,6 +34,14 @@ export const verificationApi = {
     apiClient
       .get<PaginatedResponse<VerificationHistory>>('/api/verification/history', { params })
       .then((r) => r.data),
+  extractDriverInfo: (files: File[]) => {
+    const form = new FormData()
+    files.forEach((f, i) => form.append(`image${i + 1}`, f))
+    return apiClient
+      .post<{ driverName: string | null; registrationNumber: string | null; phoneNumber: string | null }>(
+        '/api/verification/extract', form, { headers: { 'Content-Type': 'multipart/form-data' } })
+      .then((r) => r.data)
+  },
   getFollowStatus: (driverId: string) =>
     apiClient
       .get<{ isFollowing: boolean }>(`/api/drivers/${driverId}/follow`)

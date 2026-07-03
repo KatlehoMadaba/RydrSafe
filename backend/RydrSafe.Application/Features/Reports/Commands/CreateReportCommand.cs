@@ -14,7 +14,8 @@ public record CreateReportCommand(
     string Category,
     string Severity,
     string Description,
-    DateTime IncidentDate) : IRequest<Guid>;
+    DateTime IncidentDate,
+    IList<(Stream Data, string FileName)>? Evidence = null) : IRequest<Guid>;
 
 public class CreateReportCommandValidator : AbstractValidator<CreateReportCommand>
 {
@@ -36,7 +37,8 @@ public class CreateReportCommandHandler(
     IDriverRepository driverRepository,
     IVehicleRepository vehicleRepository,
     IRiskScoringService riskScoringService,
-    IRealtimeNotificationService realtimeNotificationService) : IRequestHandler<CreateReportCommand, Guid>
+    IRealtimeNotificationService realtimeNotificationService,
+    IFileStorageService fileStorageService) : IRequestHandler<CreateReportCommand, Guid>
 {
     public async Task<Guid> Handle(CreateReportCommand request, CancellationToken cancellationToken)
     {
@@ -61,6 +63,13 @@ public class CreateReportCommandHandler(
             await vehicleRepository.AddAsync(vehicle);
         }
 
+        var evidenceUrls = new List<string>();
+        if (request.Evidence is { Count: > 0 })
+        {
+            foreach (var (data, fileName) in request.Evidence)
+                evidenceUrls.Add(await fileStorageService.SaveAsync(data, fileName));
+        }
+
         var report = new Report
         {
             DriverId = driver.Id,
@@ -68,7 +77,8 @@ public class CreateReportCommandHandler(
             Category = Enum.Parse<ReportCategory>(request.Category),
             Severity = Enum.Parse<ReportSeverity>(request.Severity),
             Description = request.Description,
-            IncidentDate = DateTime.SpecifyKind(request.IncidentDate, DateTimeKind.Utc)
+            IncidentDate = DateTime.SpecifyKind(request.IncidentDate, DateTimeKind.Utc),
+            EvidenceUrls = evidenceUrls,
         };
 
         await reportRepository.AddAsync(report);

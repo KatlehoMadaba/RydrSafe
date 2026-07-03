@@ -59,6 +59,24 @@ public class VerificationController(IMediator mediator) : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("extract")]
+    public async Task<IActionResult> Extract(
+        IFormFile image1,
+        IFormFile? image2 = null,
+        IFormFile? image3 = null)
+    {
+        ValidateFile(image1);
+        if (image2 is not null) ValidateFile(image2);
+        if (image3 is not null) ValidateFile(image3);
+
+        var result = await mediator.Send(new ExtractDriverInfoCommand(
+            image1.OpenReadStream(),
+            image2?.OpenReadStream(),
+            image3?.OpenReadStream()));
+
+        return Ok(result);
+    }
+
     [HttpGet("stats")]
     public async Task<IActionResult> Stats()
     {

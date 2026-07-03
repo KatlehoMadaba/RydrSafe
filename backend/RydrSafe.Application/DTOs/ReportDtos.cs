@@ -20,7 +20,8 @@ public record ReportDto(
     string Description,
     DateTime IncidentDate,
     string Status,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    List<string> EvidenceUrls
 );
 
 public record PagedResult<T>(IEnumerable<T> Items, int TotalCount, int Page, int PageSize);

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using RydrSafe.Domain.Entities;
 using RydrSafe.Domain.Enums;
@@ -54,6 +55,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(r => r.Severity).HasConversion<string>();
             e.Property(r => r.Status).HasConversion<string>();
             e.Property(r => r.Description).IsRequired();
+            e.Property(r => r.EvidenceUrls)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>())
+                .HasColumnType("text")
+                .HasDefaultValueSql("'[]'");
             e.HasOne(r => r.User).WithMany(u => u.Reports).HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
         });
 
