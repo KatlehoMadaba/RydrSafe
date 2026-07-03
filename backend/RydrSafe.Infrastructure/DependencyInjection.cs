@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddHttpClient<IOcrService, OcrService>();
         services.AddScoped<IRiskScoringService, RiskScoringService>();
         services.AddScoped<IRealtimeNotificationService, SignalRNotificationService>();
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
         return services;
     }
