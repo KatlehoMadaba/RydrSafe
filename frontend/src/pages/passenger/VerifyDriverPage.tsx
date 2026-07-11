@@ -50,6 +50,7 @@ export function VerifyDriverPage() {
     onError,
   })
 
+  const isPassenger = user?.role === 'passenger'
   const canFollow = !!(user && result?.driverId && (result.status === 'Flagged' || result.status === 'HighRisk'))
 
   const { data: isFollowing = false } = useQuery({
@@ -274,7 +275,7 @@ export function VerifyDriverPage() {
               <Button variant="outline" className="flex-1" onClick={resetAll}>
                 Verify Another Driver
               </Button>
-              {user ? (
+              {isPassenger && (
                 <Button asChild variant="destructive" className="flex-1">
                   <Link
                     to="/passenger/report"
@@ -283,7 +284,8 @@ export function VerifyDriverPage() {
                     <Flag className="h-4 w-4 mr-2" /> Report Driver
                   </Link>
                 </Button>
-              ) : (
+              )}
+              {!user && (
                 <Button asChild variant="destructive" className="flex-1">
                   <Link
                     to="/login"

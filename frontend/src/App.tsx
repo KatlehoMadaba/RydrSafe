@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
-import { AuthProvider } from '@/hooks/useAuth'
+import { AuthProvider, useAuth } from '@/hooks/useAuth'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { PassengerLayout } from '@/layouts/PassengerLayout'
@@ -30,6 +31,19 @@ import { AdminModeratorsPage } from '@/pages/admin/ModeratorsPage'
 import { AdminAnalyticsPage } from '@/pages/admin/AnalyticsPage'
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 30_000 } } })
+
+// Send authenticated users to their dashboard; everyone else lands on the public verify page.
+function RootRedirect() {
+  const { user, isLoading } = useAuth()
+  if (isLoading) return <LoadingSpinner className="min-h-screen" />
+  if (!user) return <Navigate to="/verify" replace />
+  const dashboards: Record<string, string> = {
+    passenger: '/passenger/dashboard',
+    moderator: '/moderator/dashboard',
+    admin: '/admin/dashboard',
+  }
+  return <Navigate to={dashboards[user.role] ?? '/verify'} replace />
+}
 
 export default function App() {
   return (
@@ -76,7 +90,7 @@ export default function App() {
               </Route>
             </Route>
 
-            <Route path="/" element={<Navigate to="/verify" replace />} />
+            <Route path="/" element={<RootRedirect />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </BrowserRouter>
