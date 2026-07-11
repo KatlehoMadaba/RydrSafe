@@ -121,8 +121,12 @@ The API and Swagger UI will open at `https://localhost:7138`
 ### 🔍 Verification
 | Method | Endpoint | Access |
 |--------|----------|--------|
-| POST | `/api/verification/upload` | Passenger |
+| POST | `/api/verification/upload` | Public |
+| POST | `/api/verification/manual` | Public |
 | GET | `/api/verification/history` | Passenger |
+| GET | `/api/verification/stats` | Passenger |
+
+> 🔓 Anyone can verify a driver without an account. Verification history is only saved for logged-in users, and **reporting a driver still requires login**.
 
 ### 🚗 Drivers
 | Method | Endpoint | Access |
