@@ -8,6 +8,7 @@ export interface CreateReportRequest {
   severity: ReportSeverity
   description: string
   incidentDate: string
+  reportedToPolice: boolean
 }
 
 export const reportsApi = {

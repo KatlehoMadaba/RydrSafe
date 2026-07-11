@@ -70,6 +70,9 @@ export function ModeratorReportsPage() {
                     <Badge variant={report.status === 'Pending' ? 'warning' : report.status === 'Approved' ? 'success' : 'secondary'}>
                       {report.status}
                     </Badge>
+                    {report.reportedToPolice && (
+                      <Badge variant="destructive">Police-reported</Badge>
+                    )}
                   </div>
                   <p className="text-sm text-gray-500 mb-2">
                     Incident: {new Date(report.incidentDate).toLocaleDateString()} · Reported: {new Date(report.createdAt).toLocaleDateString()}
