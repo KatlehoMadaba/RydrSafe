@@ -19,7 +19,8 @@ public class ReportsController(IMediator mediator) : ControllerBase
         var userId = GetUserId();
         var id = await mediator.Send(new CreateReportCommand(
             request.DriverName, request.RegistrationNumber, userId,
-            request.Category, request.Severity, request.Description, request.IncidentDate));
+            request.Category, request.Severity, request.Description, request.IncidentDate,
+            request.ReportedToPolice));
         return CreatedAtAction(nameof(GetById), new { id }, new { id });
     }
 

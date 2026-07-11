@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RydrSafe.Application.Common.Interfaces;
 using RydrSafe.Domain.Entities;
+using RydrSafe.Domain.Enums;
 
 namespace RydrSafe.Infrastructure.Persistence.Repositories;
 
@@ -23,6 +24,10 @@ public class ReportRepository(AppDbContext db) : IReportRepository
 
     public async Task<int> CountByDriverIdAsync(Guid driverId) =>
         await db.Reports.CountAsync(r => r.DriverId == driverId);
+
+    public async Task<bool> HasPoliceReportAsync(Guid driverId) =>
+        await db.Reports.AnyAsync(r =>
+            r.DriverId == driverId && r.ReportedToPolice && r.Status != ReportStatus.Rejected);
 
     public async Task AddAsync(Report report)
     {

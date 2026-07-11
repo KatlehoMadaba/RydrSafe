@@ -3,6 +3,7 @@ using RydrSafe.Application.Common.Interfaces;
 using RydrSafe.Application.DTOs;
 using RydrSafe.Domain.Entities;
 using RydrSafe.Domain.Enums;
+using RydrSafe.Domain.Services;
 
 namespace RydrSafe.Application.Features.Verification.Commands;
 
@@ -71,15 +72,10 @@ public class ManualVerificationCommandHandler(
 
         var reportCount = await reportRepository.CountByDriverIdAsync(matchedDriver.Id);
         var riskScore = await riskScoringService.CalculateAsync(matchedDriver.Id);
+        var reportedToPolice = await reportRepository.HasPoliceReportAsync(matchedDriver.Id);
 
         matchedDriver.RiskScore = riskScore;
-        matchedDriver.Status = riskScore switch
-        {
-            >= 80 => DriverStatus.HighRisk,
-            >= 60 => DriverStatus.Flagged,
-            >= 30 => DriverStatus.UnderReview,
-            _ => DriverStatus.Safe
-        };
+        matchedDriver.Status = DriverStatusPolicy.Evaluate(riskScore, reportCount, reportedToPolice);
         matchedDriver.UpdatedAt = DateTime.UtcNow;
         await driverRepository.UpdateAsync(matchedDriver);
 
