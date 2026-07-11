@@ -10,7 +10,7 @@ public record ManualVerificationCommand(
     string? RegistrationNumber,
     string? DriverName,
     string? PhoneNumber,
-    Guid UserId) : IRequest<VerificationResponse>;
+    Guid? UserId) : IRequest<VerificationResponse>;
 
 public class ManualVerificationCommandHandler(
     IDriverRepository driverRepository,
@@ -52,14 +52,17 @@ public class ManualVerificationCommandHandler(
 
         if (matchedDriver is null)
         {
-            await verificationHistoryRepository.AddAsync(new VerificationHistory
+            if (request.UserId is Guid noMatchUserId)
             {
-                UserId = request.UserId,
-                DriverName = request.DriverName,
-                RegistrationNumber = request.RegistrationNumber,
-                Status = "Safe",
-                RiskScore = 0,
-            });
+                await verificationHistoryRepository.AddAsync(new VerificationHistory
+                {
+                    UserId = noMatchUserId,
+                    DriverName = request.DriverName,
+                    RegistrationNumber = request.RegistrationNumber,
+                    Status = "Safe",
+                    RiskScore = 0,
+                });
+            }
 
             return new VerificationResponse(
                 request.DriverName, request.RegistrationNumber, request.PhoneNumber,

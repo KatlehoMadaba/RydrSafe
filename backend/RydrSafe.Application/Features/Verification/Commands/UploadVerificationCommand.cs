@@ -10,7 +10,7 @@ public record UploadVerificationCommand(
     Stream Image1,
     Stream? Image2,
     Stream? Image3,
-    Guid UserId) : IRequest<VerificationResponse>;
+    Guid? UserId) : IRequest<VerificationResponse>;
 
 public class UploadVerificationCommandHandler(
     IOcrService ocrService,
@@ -59,14 +59,17 @@ public class UploadVerificationCommandHandler(
 
         if (matchedDriver is null)
         {
-            await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
+            if (request.UserId is Guid noMatchUserId)
             {
-                UserId = request.UserId,
-                DriverName = ocr.DriverName,
-                RegistrationNumber = ocr.RegistrationNumber,
-                Status = "Safe",
-                RiskScore = 0,
-            });
+                await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
+                {
+                    UserId = noMatchUserId,
+                    DriverName = ocr.DriverName,
+                    RegistrationNumber = ocr.RegistrationNumber,
+                    Status = "Safe",
+                    RiskScore = 0,
+                });
+            }
 
             return new VerificationResponse(
                 ocr.DriverName, ocr.RegistrationNumber, ocr.PhoneNumber,
@@ -87,15 +90,18 @@ public class UploadVerificationCommandHandler(
         matchedDriver.UpdatedAt = DateTime.UtcNow;
         await driverRepository.UpdateAsync(matchedDriver);
 
-        await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
+        if (request.UserId is Guid matchUserId)
         {
-            UserId = request.UserId,
-            DriverId = matchedDriver.Id,
-            DriverName = matchedDriver.DriverName,
-            RegistrationNumber = ocr.RegistrationNumber,
-            Status = matchedDriver.Status.ToString(),
-            RiskScore = riskScore,
-        });
+            await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
+            {
+                UserId = matchUserId,
+                DriverId = matchedDriver.Id,
+                DriverName = matchedDriver.DriverName,
+                RegistrationNumber = ocr.RegistrationNumber,
+                Status = matchedDriver.Status.ToString(),
+                RiskScore = riskScore,
+            });
+        }
 
         if (matchedDriver.Status is DriverStatus.Flagged or DriverStatus.HighRisk)
         {
