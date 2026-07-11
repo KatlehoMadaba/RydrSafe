@@ -39,6 +39,7 @@ export default function App() {
           <Routes>
             {/* Public */}
             <Route element={<PublicLayout />}>
+              <Route path="/verify" element={<VerifyDriverPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -75,7 +76,7 @@ export default function App() {
               </Route>
             </Route>
 
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<Navigate to="/verify" replace />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </BrowserRouter>

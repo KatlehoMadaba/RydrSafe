@@ -4,6 +4,7 @@ import { Upload, X, ShieldCheck, AlertTriangle, Info, Flag, PenLine, Bell, BellO
 import { toast } from 'sonner'
 import { Link } from 'react-router-dom'
 import { verificationApi } from '@/api/verification'
+import { useAuth } from '@/hooks/useAuth'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -31,6 +32,7 @@ export function VerifyDriverPage() {
   const [phoneNumber, setPhoneNumber] = useState('')
 
   const qc = useQueryClient()
+  const { user } = useAuth()
 
   const onSuccess = (data: VerificationResult) => { setResult(data) }
   const onError = () => toast.error('Verification failed. Please try again.')
@@ -48,7 +50,7 @@ export function VerifyDriverPage() {
     onError,
   })
 
-  const canFollow = !!(result?.driverId && (result.status === 'Flagged' || result.status === 'HighRisk'))
+  const canFollow = !!(user && result?.driverId && (result.status === 'Flagged' || result.status === 'HighRisk'))
 
   const { data: isFollowing = false } = useQuery({
     queryKey: ['driver-follow', result?.driverId],
@@ -272,15 +274,34 @@ export function VerifyDriverPage() {
               <Button variant="outline" className="flex-1" onClick={resetAll}>
                 Verify Another Driver
               </Button>
-              <Button asChild variant="destructive" className="flex-1">
-                <Link
-                  to="/passenger/report"
-                  state={{ driverName: result.driverName, registrationNumber: result.registrationNumber }}
-                >
-                  <Flag className="h-4 w-4 mr-2" /> Report Driver
-                </Link>
-              </Button>
+              {user ? (
+                <Button asChild variant="destructive" className="flex-1">
+                  <Link
+                    to="/passenger/report"
+                    state={{ driverName: result.driverName, registrationNumber: result.registrationNumber }}
+                  >
+                    <Flag className="h-4 w-4 mr-2" /> Report Driver
+                  </Link>
+                </Button>
+              ) : (
+                <Button asChild variant="destructive" className="flex-1">
+                  <Link
+                    to="/login"
+                    state={{
+                      from: '/passenger/report',
+                      prefill: { driverName: result.driverName, registrationNumber: result.registrationNumber },
+                    }}
+                  >
+                    <Flag className="h-4 w-4 mr-2" /> Log in to Report
+                  </Link>
+                </Button>
+              )}
             </div>
+            {!user && (
+              <p className="text-center text-xs text-gray-500">
+                Reporting a driver requires an account so we can keep reports accountable.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

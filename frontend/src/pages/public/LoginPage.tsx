@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,8 @@ type FormData = z.infer<typeof schema>
 export function LoginPage() {
   const { login, user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const redirect = location.state as { from?: string; prefill?: unknown } | null
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -27,6 +29,11 @@ export function LoginPage() {
 
   useEffect(() => {
     if (user) {
+      // Return the passenger to the action they came from (e.g. reporting a driver), if any.
+      if (redirect?.from && user.role === 'passenger') {
+        navigate(redirect.from, { replace: true, state: redirect.prefill })
+        return
+      }
       const redirects: Record<string, string> = {
         passenger: '/passenger/dashboard',
         moderator: '/moderator/dashboard',
@@ -34,7 +41,7 @@ export function LoginPage() {
       }
       navigate(redirects[user.role] ?? '/passenger/dashboard', { replace: true })
     }
-  }, [user, navigate])
+  }, [user, navigate, redirect])
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -71,11 +78,17 @@ export function LoginPage() {
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="justify-center">
+      <CardFooter className="flex-col gap-3">
         <p className="text-sm text-gray-500">
           Don't have an account?{' '}
           <Link to="/register" className="text-blue-600 hover:underline font-medium">
             Sign up
+          </Link>
+        </p>
+        <p className="text-sm text-gray-500">
+          Just want to check a driver?{' '}
+          <Link to="/verify" className="text-blue-600 hover:underline font-medium">
+            Verify without an account
           </Link>
         </p>
       </CardFooter>
