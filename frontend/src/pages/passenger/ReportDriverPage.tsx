@@ -20,7 +20,7 @@ const schema = z.object({
   severity: z.enum(['Low', 'Medium', 'High', 'Critical']),
   description: z.string().min(20, 'Please provide at least 20 characters of detail'),
   incidentDate: z.string().min(1, 'Incident date is required'),
-  reportedToPolice: z.boolean().default(false),
+  reportedToPolice: z.boolean(),
 })
 type FormData = z.infer<typeof schema>
 
@@ -48,6 +48,7 @@ export function ReportDriverPage() {
 
   const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: { reportedToPolice: false },
   })
 
   useEffect(() => {
