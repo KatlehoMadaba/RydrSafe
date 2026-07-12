@@ -77,7 +77,7 @@ public class UploadVerificationCommandHandler(
                 "Safe", 0, 0, false, null);
         }
 
-        var reportCount = await reportRepository.CountByDriverIdAsync(matchedDriver.Id);
+        var reportCount = await reportRepository.CountActiveByDriverIdAsync(matchedDriver.Id);
         var riskScore = await riskScoringService.CalculateAsync(matchedDriver.Id);
         var reportedToPolice = await reportRepository.HasPoliceReportAsync(matchedDriver.Id);
 

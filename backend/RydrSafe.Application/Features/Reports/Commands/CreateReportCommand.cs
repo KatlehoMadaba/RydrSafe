@@ -77,7 +77,7 @@ public class CreateReportCommandHandler(
         await reportRepository.AddAsync(report);
 
         var newScore = await riskScoringService.CalculateAsync(driver.Id);
-        var reportCount = await reportRepository.CountByDriverIdAsync(driver.Id);
+        var reportCount = await reportRepository.CountActiveByDriverIdAsync(driver.Id);
         var reportedToPolice = await reportRepository.HasPoliceReportAsync(driver.Id);
 
         driver.RiskScore = newScore;
