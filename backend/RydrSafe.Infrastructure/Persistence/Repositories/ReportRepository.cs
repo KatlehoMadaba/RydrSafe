@@ -25,6 +25,11 @@ public class ReportRepository(AppDbContext db) : IReportRepository
     public async Task<int> CountByDriverIdAsync(Guid driverId) =>
         await db.Reports.CountAsync(r => r.DriverId == driverId);
 
+    // Counts only reports that still stand (excludes moderator-rejected ones),
+    // matching how risk scoring and the police check treat rejected reports.
+    public async Task<int> CountActiveByDriverIdAsync(Guid driverId) =>
+        await db.Reports.CountAsync(r => r.DriverId == driverId && r.Status != ReportStatus.Rejected);
+
     public async Task<bool> HasPoliceReportAsync(Guid driverId) =>
         await db.Reports.AnyAsync(r =>
             r.DriverId == driverId && r.ReportedToPolice && r.Status != ReportStatus.Rejected);
