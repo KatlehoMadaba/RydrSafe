@@ -16,6 +16,7 @@ public class VerificationController(IMediator mediator) : ControllerBase
     private const long MaxFileSize = 10 * 1024 * 1024; // 10MB
 
     [HttpPost("upload")]
+    [AllowAnonymous]
     public async Task<IActionResult> Upload(
         IFormFile image1,
         IFormFile? image2 = null,
@@ -25,7 +26,7 @@ public class VerificationController(IMediator mediator) : ControllerBase
         if (image2 is not null) ValidateFile(image2);
         if (image3 is not null) ValidateFile(image3);
 
-        var userId = GetUserId();
+        var userId = GetUserIdOrNull();
 
         var result = await mediator.Send(new UploadVerificationCommand(
             image1.OpenReadStream(),
@@ -37,9 +38,10 @@ public class VerificationController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("manual")]
+    [AllowAnonymous]
     public async Task<IActionResult> Manual([FromBody] ManualVerificationRequest body)
     {
-        var userId = GetUserId();
+        var userId = GetUserIdOrNull();
         var result = await mediator.Send(new ManualVerificationCommand(
             body.RegistrationNumber,
             body.DriverName,
@@ -82,5 +84,12 @@ public class VerificationController(IMediator mediator) : ControllerBase
         var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
             ?? throw new UnauthorizedAccessException();
         return Guid.Parse(claim);
+    }
+
+    // Verification is open to anonymous visitors; returns null when the caller is not logged in.
+    private Guid? GetUserIdOrNull()
+    {
+        var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(claim, out var userId) ? userId : null;
     }
 }

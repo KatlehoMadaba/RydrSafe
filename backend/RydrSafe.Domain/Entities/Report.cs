@@ -11,6 +11,7 @@ public class Report
     public ReportSeverity Severity { get; set; }
     public string Description { get; set; } = string.Empty;
     public DateTime IncidentDate { get; set; }
+    public bool ReportedToPolice { get; set; }
     public ReportStatus Status { get; set; } = ReportStatus.Pending;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

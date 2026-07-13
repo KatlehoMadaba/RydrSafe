@@ -3,6 +3,7 @@ using RydrSafe.Application.Common.Interfaces;
 using RydrSafe.Application.DTOs;
 using RydrSafe.Domain.Entities;
 using RydrSafe.Domain.Enums;
+using RydrSafe.Domain.Services;
 
 namespace RydrSafe.Application.Features.Verification.Commands;
 
@@ -69,28 +70,40 @@ public class ManualVerificationCommandHandler(
                 "Safe", 0, 0, false, null);
         }
 
-        var reportCount = await reportRepository.CountByDriverIdAsync(matchedDriver.Id);
+        var reportCount = await reportRepository.CountActiveByDriverIdAsync(matchedDriver.Id);
         var riskScore = await riskScoringService.CalculateAsync(matchedDriver.Id);
+        var reportedToPolice = await reportRepository.HasPoliceReportAsync(matchedDriver.Id);
+        var status = DriverStatusPolicy.Evaluate(riskScore, reportCount, reportedToPolice);
 
-        matchedDriver.RiskScore = riskScore;
-        matchedDriver.Status = riskScore switch
+        // Anonymous verification is read-only: the recalculated status is returned to the caller but
+        // not persisted, so every stored status change stays attributable to an audited actor
+        // (a report, or an authenticated verification recorded in VerificationHistory below).
+        if (request.UserId is Guid matchUserId)
         {
-            >= 80 => DriverStatus.HighRisk,
-            >= 60 => DriverStatus.Flagged,
-            >= 30 => DriverStatus.UnderReview,
-            _ => DriverStatus.Safe
-        };
-        matchedDriver.UpdatedAt = DateTime.UtcNow;
-        await driverRepository.UpdateAsync(matchedDriver);
+            matchedDriver.RiskScore = riskScore;
+            matchedDriver.Status = status;
+            matchedDriver.UpdatedAt = DateTime.UtcNow;
+            await driverRepository.UpdateAsync(matchedDriver);
 
-        if (matchedDriver.Status is DriverStatus.Flagged or DriverStatus.HighRisk)
+            await verificationHistoryRepository.AddAsync(new VerificationHistory
+            {
+                UserId = matchUserId,
+                DriverId = matchedDriver.Id,
+                DriverName = matchedDriver.DriverName,
+                RegistrationNumber = request.RegistrationNumber,
+                Status = status.ToString(),
+                RiskScore = riskScore,
+            });
+        }
+
+        if (status is DriverStatus.Flagged or DriverStatus.HighRisk)
         {
             await realtimeNotificationService.NotifyModeratorsAsync(
                 "Flagged Driver Detected",
                 $"Driver {matchedDriver.DriverName} ({request.RegistrationNumber}) matched during manual verification. Risk score: {riskScore}.");
 
             var followers = await driverFollowRepository.GetFollowersByDriverIdAsync(matchedDriver.Id);
-            var label = matchedDriver.Status == DriverStatus.HighRisk ? "High Risk" : "Flagged";
+            var label = status == DriverStatus.HighRisk ? "High Risk" : "Flagged";
             foreach (var follow in followers)
             {
                 var title = $"Driver Alert: {matchedDriver.DriverName}";
@@ -109,7 +122,7 @@ public class ManualVerificationCommandHandler(
             matchedDriver.DriverName,
             request.RegistrationNumber,
             matchedDriver.PhoneNumber,
-            matchedDriver.Status.ToString(),
+            status.ToString(),
             riskScore,
             reportCount,
             true,

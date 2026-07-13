@@ -4,6 +4,7 @@ using RydrSafe.Application.Common.Interfaces;
 using RydrSafe.Application.DTOs;
 using RydrSafe.Domain.Entities;
 using RydrSafe.Domain.Enums;
+using RydrSafe.Domain.Services;
 
 namespace RydrSafe.Application.Features.Reports.Commands;
 
@@ -14,7 +15,8 @@ public record CreateReportCommand(
     string Category,
     string Severity,
     string Description,
-    DateTime IncidentDate) : IRequest<Guid>;
+    DateTime IncidentDate,
+    bool ReportedToPolice = false) : IRequest<Guid>;
 
 public class CreateReportCommandValidator : AbstractValidator<CreateReportCommand>
 {
@@ -68,20 +70,18 @@ public class CreateReportCommandHandler(
             Category = Enum.Parse<ReportCategory>(request.Category),
             Severity = Enum.Parse<ReportSeverity>(request.Severity),
             Description = request.Description,
-            IncidentDate = DateTime.SpecifyKind(request.IncidentDate, DateTimeKind.Utc)
+            IncidentDate = DateTime.SpecifyKind(request.IncidentDate, DateTimeKind.Utc),
+            ReportedToPolice = request.ReportedToPolice
         };
 
         await reportRepository.AddAsync(report);
 
         var newScore = await riskScoringService.CalculateAsync(driver.Id);
+        var reportCount = await reportRepository.CountActiveByDriverIdAsync(driver.Id);
+        var reportedToPolice = await reportRepository.HasPoliceReportAsync(driver.Id);
+
         driver.RiskScore = newScore;
-        driver.Status = newScore switch
-        {
-            >= 80 => DriverStatus.HighRisk,
-            >= 60 => DriverStatus.Flagged,
-            >= 30 => DriverStatus.UnderReview,
-            _ => DriverStatus.Safe
-        };
+        driver.Status = DriverStatusPolicy.Evaluate(newScore, reportCount, reportedToPolice);
         driver.UpdatedAt = DateTime.UtcNow;
         await driverRepository.UpdateAsync(driver);
 

@@ -9,6 +9,8 @@ public interface IReportRepository
     Task<IEnumerable<Report>> GetByDriverIdAsync(Guid driverId);
     Task<IEnumerable<Report>> GetByUserIdAsync(Guid userId);
     Task<int> CountByDriverIdAsync(Guid driverId);
+    Task<int> CountActiveByDriverIdAsync(Guid driverId);
+    Task<bool> HasPoliceReportAsync(Guid driverId);
     Task AddAsync(Report report);
     Task UpdateAsync(Report report);
 }

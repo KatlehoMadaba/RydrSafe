@@ -20,6 +20,7 @@ const schema = z.object({
   severity: z.enum(['Low', 'Medium', 'High', 'Critical']),
   description: z.string().min(20, 'Please provide at least 20 characters of detail'),
   incidentDate: z.string().min(1, 'Incident date is required'),
+  reportedToPolice: z.boolean(),
 })
 type FormData = z.infer<typeof schema>
 
@@ -47,6 +48,7 @@ export function ReportDriverPage() {
 
   const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: { reportedToPolice: false },
   })
 
   useEffect(() => {
@@ -124,6 +126,21 @@ export function ReportDriverPage() {
               <Label>Description</Label>
               <Textarea rows={5} placeholder="Describe what happened in detail…" {...register('description')} />
               {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
+            </div>
+
+            <div className="flex items-start gap-2 rounded-md bg-gray-50 dark:bg-gray-800 p-3">
+              <input
+                id="reportedToPolice"
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                {...register('reportedToPolice')}
+              />
+              <Label htmlFor="reportedToPolice" className="text-sm font-normal text-gray-700 dark:text-gray-300">
+                I have also reported this incident to the police.
+                <span className="block text-xs text-gray-500">
+                  Drivers with multiple reports that have been taken to the police are marked as high risk.
+                </span>
+              </Label>
             </div>
 
             <Button type="submit" className="w-full" disabled={isSubmitting || mutation.isPending}>

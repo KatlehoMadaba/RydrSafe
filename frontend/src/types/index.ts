@@ -56,6 +56,7 @@ export interface Report {
   description: string
   status: ReportStatus
   incidentDate: string
+  reportedToPolice: boolean
   createdAt: string
 }
 

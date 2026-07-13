@@ -6,7 +6,8 @@ public record CreateReportRequest(
     string Category,
     string Severity,
     string Description,
-    DateTime IncidentDate
+    DateTime IncidentDate,
+    bool ReportedToPolice = false
 );
 
 public record ReportDto(
@@ -19,6 +20,7 @@ public record ReportDto(
     string Severity,
     string Description,
     DateTime IncidentDate,
+    bool ReportedToPolice,
     string Status,
     DateTime CreatedAt
 );
