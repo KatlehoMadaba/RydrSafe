@@ -80,26 +80,30 @@ public class UploadVerificationCommandHandler(
         var reportCount = await reportRepository.CountActiveByDriverIdAsync(matchedDriver.Id);
         var riskScore = await riskScoringService.CalculateAsync(matchedDriver.Id);
         var reportedToPolice = await reportRepository.HasPoliceReportAsync(matchedDriver.Id);
+        var status = DriverStatusPolicy.Evaluate(riskScore, reportCount, reportedToPolice);
 
-        matchedDriver.RiskScore = riskScore;
-        matchedDriver.Status = DriverStatusPolicy.Evaluate(riskScore, reportCount, reportedToPolice);
-        matchedDriver.UpdatedAt = DateTime.UtcNow;
-        await driverRepository.UpdateAsync(matchedDriver);
-
+        // Anonymous verification is read-only: the recalculated status is returned to the caller but
+        // not persisted, so every stored status change stays attributable to an audited actor
+        // (a report, or an authenticated verification recorded in VerificationHistory below).
         if (request.UserId is Guid matchUserId)
         {
+            matchedDriver.RiskScore = riskScore;
+            matchedDriver.Status = status;
+            matchedDriver.UpdatedAt = DateTime.UtcNow;
+            await driverRepository.UpdateAsync(matchedDriver);
+
             await verificationHistoryRepository.AddAsync(new Domain.Entities.VerificationHistory
             {
                 UserId = matchUserId,
                 DriverId = matchedDriver.Id,
                 DriverName = matchedDriver.DriverName,
                 RegistrationNumber = ocr.RegistrationNumber,
-                Status = matchedDriver.Status.ToString(),
+                Status = status.ToString(),
                 RiskScore = riskScore,
             });
         }
 
-        if (matchedDriver.Status is DriverStatus.Flagged or DriverStatus.HighRisk)
+        if (status is DriverStatus.Flagged or DriverStatus.HighRisk)
         {
             try
             {
@@ -108,7 +112,7 @@ public class UploadVerificationCommandHandler(
                     $"Driver {matchedDriver.DriverName} ({ocr.RegistrationNumber}) matched during verification. Risk score: {riskScore}.");
 
                 var followers = await driverFollowRepository.GetFollowersByDriverIdAsync(matchedDriver.Id);
-                var label = matchedDriver.Status == DriverStatus.HighRisk ? "High Risk" : "Flagged";
+                var label = status == DriverStatus.HighRisk ? "High Risk" : "Flagged";
                 foreach (var follow in followers)
                 {
                     var title = $"Driver Alert: {matchedDriver.DriverName}";
@@ -132,7 +136,7 @@ public class UploadVerificationCommandHandler(
             matchedDriver.DriverName,
             ocr.RegistrationNumber,
             matchedDriver.PhoneNumber,
-            matchedDriver.Status.ToString(),
+            status.ToString(),
             riskScore,
             reportCount,
             true,
