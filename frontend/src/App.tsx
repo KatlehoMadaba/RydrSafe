@@ -30,6 +30,8 @@ import { AdminUsersPage } from '@/pages/admin/UsersPage'
 import { AdminModeratorsPage } from '@/pages/admin/ModeratorsPage'
 import { AdminAnalyticsPage } from '@/pages/admin/AnalyticsPage'
 
+import { DesignSystemPage } from '@/pages/dev/DesignSystemPage'
+
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 30_000 } } })
 
 // Send authenticated users to their dashboard; everyone else lands on the public verify page.
@@ -89,6 +91,11 @@ export default function App() {
                 <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
               </Route>
             </Route>
+
+            {/* Design system review surface. import.meta.env.DEV is statically
+                replaced at build time, so this route and its page are dropped from
+                production bundles. React Router ignores the `false` child. */}
+            {import.meta.env.DEV && <Route path="/dev/system" element={<DesignSystemPage />} />}
 
             <Route path="/" element={<RootRedirect />} />
             <Route path="*" element={<Navigate to="/login" replace />} />

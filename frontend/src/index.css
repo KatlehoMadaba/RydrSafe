@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* Supplies the animate-in / fade-in-0 / zoom-in-95 utilities that shadcn emits on
+   Radix data-[state] attributes. CSS only — no components, no runtime. */
+@import "tw-animate-css";
 
 /* Without this, Tailwind v4 compiles `dark:` to a prefers-color-scheme media query.
    Nothing ever applies `.dark`, so gating it here keeps the remaining dark: classes
