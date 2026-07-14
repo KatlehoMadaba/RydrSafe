@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Without this, Tailwind v4 compiles `dark:` to a prefers-color-scheme media query.
+   Nothing ever applies `.dark`, so gating it here keeps those variants inert
+   instead of firing against a permanently light body. */
+@custom-variant dark (&:is(.dark *));
+
 @layer base {
   :root {
     --background: 0 0% 100%;

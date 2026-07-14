@@ -10,11 +10,10 @@ import { Badge } from '@/components/ui/badge'
 export function ModeratorDashboardPage() {
   const { data: reports } = useQuery({ queryKey: ['reports'], queryFn: () => reportsApi.getAll({ pageSize: 5 }) })
   const { data: drivers } = useQuery({ queryKey: ['drivers'], queryFn: () => driversApi.getAll({ pageSize: 5 }) })
-  const { data: flaggedCount, error: flaggedError, isLoading: flaggedLoading } = useQuery({ queryKey: ['drivers', 'flagged-count'], queryFn: () => driversApi.getFlaggedCount() })
+  const { data: flaggedCount } = useQuery({ queryKey: ['drivers', 'flagged-count'], queryFn: () => driversApi.getFlaggedCount() })
 
   const pending = reports?.items.filter(r => r.status === 'Pending').length ?? 0
   const flagged = flaggedCount ?? 0
-  console.log('[flagged-count] raw:', flaggedCount, '| loading:', flaggedLoading, '| error:', flaggedError)
   const stats = [
     { label: 'Pending Reports', value: pending, icon: Clock, color: 'text-yellow-600 bg-yellow-50' },
     { label: 'Total Reports', value: reports?.totalCount ?? 0, icon: FileText, color: 'text-blue-600 bg-blue-50' },
