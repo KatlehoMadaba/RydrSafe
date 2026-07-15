@@ -25,7 +25,8 @@ export function AdminAnalyticsPage() {
     count: drivers?.items.filter((d) => d.status === status).length ?? 0,
   }))
 
-  const topRisk = (drivers?.items ?? []).sort((a, b) => b.riskScore - a.riskScore).slice(0, 5)
+  // Copy before sorting — sort() mutates in place, and `items` is react-query's cached array.
+  const topRisk = [...(drivers?.items ?? [])].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5)
 
   return (
     <div className="space-y-6">

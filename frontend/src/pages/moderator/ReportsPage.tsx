@@ -90,6 +90,7 @@ export function ModeratorReportsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Driver</TableHead>
                   <TableHead>Report</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Dates</TableHead>
@@ -97,8 +98,19 @@ export function ModeratorReportsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.items.map((report) => (
+                {data.items.map((report) => {
+                  // One in-flight action locks the whole row — the three verdicts are
+                  // mutually exclusive, so a second click before the first settles is never intended.
+                  const rowBusy =
+                    (approve.isPending && approve.variables === report.id) ||
+                    (reject.isPending && reject.variables === report.id) ||
+                    (escalate.isPending && escalate.variables === report.id)
+
+                  return (
                   <TableRow key={report.id}>
+                    <TableCell>
+                      <span className="font-medium text-foreground">{report.driverName || '—'}</span>
+                    </TableCell>
                     <TableCell className="whitespace-normal max-w-md">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className="font-semibold text-foreground">{report.category.replace(/([A-Z])/g, ' $1').trim()}</span>
@@ -125,6 +137,7 @@ export function ModeratorReportsPage() {
                             variant="outline"
                             className="text-safe border-safe-muted hover:bg-safe-soft"
                             isLoading={approve.isPending && approve.variables === report.id}
+                            disabled={rowBusy}
                             onClick={() => approve.mutate(report.id)}
                           >
                             <CheckCircle className="h-3 w-3 mr-1" />
@@ -135,6 +148,7 @@ export function ModeratorReportsPage() {
                             variant="outline"
                             className="text-highrisk border-highrisk-muted hover:bg-highrisk-soft"
                             isLoading={reject.isPending && reject.variables === report.id}
+                            disabled={rowBusy}
                             onClick={() => reject.mutate(report.id)}
                           >
                             <XCircle className="h-3 w-3 mr-1" />
@@ -145,6 +159,7 @@ export function ModeratorReportsPage() {
                             variant="outline"
                             className="text-flagged border-flagged-muted hover:bg-flagged-soft"
                             isLoading={escalate.isPending && escalate.variables === report.id}
+                            disabled={rowBusy}
                             onClick={() => escalate.mutate(report.id)}
                           >
                             <ArrowUpCircle className="h-3 w-3 mr-1" />
@@ -156,7 +171,8 @@ export function ModeratorReportsPage() {
                       )}
                     </TableCell>
                   </TableRow>
-                ))}
+                  )
+                })}
               </TableBody>
             </Table>
           </CardContent>

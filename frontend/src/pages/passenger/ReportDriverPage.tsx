@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
@@ -51,6 +51,7 @@ export function ReportDriverPage() {
     register,
     handleSubmit,
     setValue,
+    control,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
@@ -103,43 +104,59 @@ export function ReportDriverPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Controller rather than watch(): Radix's Select needs a controlled `value`
+                  so reset() clears it, and watch() defeats React Compiler memoisation. */}
               <div className="space-y-1">
                 <Label htmlFor="category">Category</Label>
-                <Select onValueChange={(v) => setValue('category', v as FormData['category'])}>
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={control}
+                  name="category"
+                  render={({ field }) => (
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger id="category">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>
+                            {c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
                 {errors.category && <p className="text-xs text-highrisk">{errors.category.message}</p>}
               </div>
               <div className="space-y-1">
                 <Label htmlFor="severity">Severity</Label>
-                <Select onValueChange={(v) => setValue('severity', v as FormData['severity'])}>
-                  <SelectTrigger id="severity">
-                    <SelectValue placeholder="Select severity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {severities.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        <span className={s.color}>{s.label}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={control}
+                  name="severity"
+                  render={({ field }) => (
+                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                      <SelectTrigger id="severity">
+                        <SelectValue placeholder="Select severity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {severities.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>
+                            <span className={s.color}>{s.label}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
                 {errors.severity && <p className="text-xs text-highrisk">{errors.severity.message}</p>}
               </div>
             </div>
 
             <div className="space-y-1">
               <Label htmlFor="incidentDate">Incident Date</Label>
-              <Input id="incidentDate" type="date" max={new Date().toISOString().split('T')[0]} {...register('incidentDate')} />
+              {/* en-CA gives YYYY-MM-DD in the user's own timezone; toISOString() would
+                  use UTC and block "today" for anyone east of it. */}
+              <Input id="incidentDate" type="date" max={new Date().toLocaleDateString('en-CA')} {...register('incidentDate')} />
               {errors.incidentDate && <p className="text-xs text-highrisk">{errors.incidentDate.message}</p>}
             </div>
 

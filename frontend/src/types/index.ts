@@ -48,9 +48,11 @@ export type ReportStatus = 'Pending' | 'Approved' | 'Rejected' | 'Escalated'
 export interface Report {
   id: string
   driverId: string
-  driver?: Driver
+  /** Flattened by the API (ReportDto), which sends a name string rather than a nested driver object. */
+  driverName: string
   userId: string
-  user?: User
+  /** Likewise flattened — the reporter's full name, not a nested user object. */
+  reporterName: string
   category: ReportCategory
   severity: ReportSeverity
   description: string

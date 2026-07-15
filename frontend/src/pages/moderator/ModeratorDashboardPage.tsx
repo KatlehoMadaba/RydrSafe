@@ -16,15 +16,21 @@ export function ModeratorDashboardPage() {
     queryKey: ['drivers', 'flagged-count'],
     queryFn: () => driversApi.getFlaggedCount(),
   })
+  // Counted server-side rather than filtered out of the 5-item `reports` page above,
+  // which would under-report the backlog the moment a 6th report is pending.
+  const { data: pendingReports, isLoading: pendingLoading } = useQuery({
+    queryKey: ['reports', 'Pending', 'count'],
+    queryFn: () => reportsApi.getAll({ status: 'Pending', pageSize: 1 }),
+  })
 
-  const pending = reports?.items.filter((r) => r.status === 'Pending').length ?? 0
+  const pending = pendingReports?.totalCount ?? 0
 
   return (
     <div className="space-y-6">
       <h1 className="font-display text-2xl font-bold text-foreground">Moderator Dashboard</h1>
 
       <StatCardGrid>
-        <StatCard label="Pending Reports" value={pending} icon={Clock} accent="review" isLoading={reportsLoading} />
+        <StatCard label="Pending Reports" value={pending} icon={Clock} accent="review" isLoading={pendingLoading} />
         <StatCard label="Total Reports" value={reports?.totalCount ?? 0} icon={FileText} accent="navy" isLoading={reportsLoading} />
         <StatCard label="Flagged Drivers" value={flaggedCount ?? 0} icon={AlertTriangle} accent="highrisk" isLoading={flaggedLoading} />
         <StatCard label="Total Drivers" value={drivers?.totalCount ?? 0} icon={Car} accent="neutral" isLoading={driversLoading} />

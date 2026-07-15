@@ -21,6 +21,7 @@ type Phase = 'upload' | 'confirm' | 'scanning' | 'result'
 
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_SIZE = 10 * 1024 * 1024
+const MAX_FILES = 3
 
 // Both /verify (public) and /passenger/verify render this same component — the
 // role branching below must keep working for both an anonymous visitor and a
@@ -74,7 +75,12 @@ export function VerifyDriverPage() {
       }
       return true
     })
-    setFiles((prev) => [...prev, ...valid].slice(0, 3))
+    setFiles((prev) => {
+      const next = [...prev, ...valid]
+      // Say so rather than silently dropping the extras, like the checks above do.
+      if (next.length > MAX_FILES) toast.error(`Only the first ${MAX_FILES} screenshots are kept.`)
+      return next.slice(0, MAX_FILES)
+    })
   }
   const removeFile = (i: number) => setFiles((prev) => prev.filter((_, idx) => idx !== i))
 
