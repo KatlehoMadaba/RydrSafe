@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
+import { isAxiosError } from 'axios'
 import { toast } from 'sonner'
 import { reportsApi } from '@/api/reports'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -36,17 +37,23 @@ const categories: { value: FormData['category']; label: string }[] = [
 ]
 
 const severities: { value: FormData['severity']; label: string; color: string }[] = [
-  { value: 'Low', label: 'Low', color: 'text-green-600' },
-  { value: 'Medium', label: 'Medium', color: 'text-yellow-600' },
-  { value: 'High', label: 'High', color: 'text-orange-600' },
-  { value: 'Critical', label: 'Critical', color: 'text-red-600' },
+  { value: 'Low', label: 'Low', color: 'text-safe' },
+  { value: 'Medium', label: 'Medium', color: 'text-review' },
+  { value: 'High', label: 'High', color: 'text-flagged' },
+  { value: 'Critical', label: 'Critical', color: 'text-highrisk' },
 ]
 
 export function ReportDriverPage() {
   const location = useLocation()
   const prefill = location.state as { driverName?: string; registrationNumber?: string } | null
 
-  const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { reportedToPolice: false },
   })
@@ -54,19 +61,25 @@ export function ReportDriverPage() {
   useEffect(() => {
     if (prefill?.driverName) setValue('driverName', prefill.driverName)
     if (prefill?.registrationNumber) setValue('registrationNumber', prefill.registrationNumber)
-  }, [])
+  }, [prefill?.driverName, prefill?.registrationNumber, setValue])
 
   const mutation = useMutation({
     mutationFn: reportsApi.create,
-    onSuccess: () => { toast.success('Report submitted successfully. Our moderators will review it.'); reset() },
-    onError: (err: any) => toast.error(err?.response?.data?.title ?? err?.message ?? 'Failed to submit report. Please try again.'),
+    onSuccess: () => {
+      toast.success('Report submitted successfully. Our moderators will review it.')
+      reset()
+    },
+    onError: (err: unknown) => {
+      const message = isAxiosError<{ title?: string }>(err) ? err.response?.data?.title : undefined
+      toast.error(message ?? 'Failed to submit report. Please try again.')
+    },
   })
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Report a Driver</h1>
-        <p className="text-gray-500 mt-1">Help keep the community safe by reporting unsafe behaviour.</p>
+        <h1 className="font-display text-2xl font-bold text-foreground">Report a Driver</h1>
+        <p className="text-muted-foreground mt-1">Help keep the community safe by reporting unsafe behaviour.</p>
       </div>
 
       <Card>
@@ -76,34 +89,42 @@ export function ReportDriverPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label>Driver Name</Label>
-                <Input placeholder="e.g. John Smith" {...register('driverName')} />
-                {errors.driverName && <p className="text-xs text-red-500">{errors.driverName.message}</p>}
+                <Label htmlFor="driverName">Driver Name</Label>
+                <Input id="driverName" placeholder="e.g. John Smith" {...register('driverName')} />
+                {errors.driverName && <p className="text-xs text-highrisk">{errors.driverName.message}</p>}
               </div>
               <div className="space-y-1">
-                <Label>Registration Number</Label>
-                <Input placeholder="e.g. ABC123GP" {...register('registrationNumber')} />
-                {errors.registrationNumber && <p className="text-xs text-red-500">{errors.registrationNumber.message}</p>}
+                <Label htmlFor="registrationNumber">Registration Number</Label>
+                <Input id="registrationNumber" placeholder="e.g. ABC123GP" {...register('registrationNumber')} />
+                {errors.registrationNumber && <p className="text-xs text-highrisk">{errors.registrationNumber.message}</p>}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label>Category</Label>
+                <Label htmlFor="category">Category</Label>
                 <Select onValueChange={(v) => setValue('category', v as FormData['category'])}>
-                  <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {categories.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                    {categories.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                {errors.category && <p className="text-xs text-red-500">{errors.category.message}</p>}
+                {errors.category && <p className="text-xs text-highrisk">{errors.category.message}</p>}
               </div>
               <div className="space-y-1">
-                <Label>Severity</Label>
+                <Label htmlFor="severity">Severity</Label>
                 <Select onValueChange={(v) => setValue('severity', v as FormData['severity'])}>
-                  <SelectTrigger><SelectValue placeholder="Select severity" /></SelectTrigger>
+                  <SelectTrigger id="severity">
+                    <SelectValue placeholder="Select severity" />
+                  </SelectTrigger>
                   <SelectContent>
                     {severities.map((s) => (
                       <SelectItem key={s.value} value={s.value}>
@@ -112,39 +133,39 @@ export function ReportDriverPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.severity && <p className="text-xs text-red-500">{errors.severity.message}</p>}
+                {errors.severity && <p className="text-xs text-highrisk">{errors.severity.message}</p>}
               </div>
             </div>
 
             <div className="space-y-1">
-              <Label>Incident Date</Label>
-              <Input type="date" max={new Date().toISOString().split('T')[0]} {...register('incidentDate')} />
-              {errors.incidentDate && <p className="text-xs text-red-500">{errors.incidentDate.message}</p>}
+              <Label htmlFor="incidentDate">Incident Date</Label>
+              <Input id="incidentDate" type="date" max={new Date().toISOString().split('T')[0]} {...register('incidentDate')} />
+              {errors.incidentDate && <p className="text-xs text-highrisk">{errors.incidentDate.message}</p>}
             </div>
 
             <div className="space-y-1">
-              <Label>Description</Label>
-              <Textarea rows={5} placeholder="Describe what happened in detail…" {...register('description')} />
-              {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
+              <Label htmlFor="description">Description</Label>
+              <Textarea id="description" rows={5} placeholder="Describe what happened in detail…" {...register('description')} />
+              {errors.description && <p className="text-xs text-highrisk">{errors.description.message}</p>}
             </div>
 
-            <div className="flex items-start gap-2 rounded-md bg-gray-50 dark:bg-gray-800 p-3">
+            <div className="flex items-start gap-2 rounded-md bg-muted p-3">
               <input
                 id="reportedToPolice"
                 type="checkbox"
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="mt-0.5 h-4 w-4 rounded border-input text-primary focus:ring-ring"
                 {...register('reportedToPolice')}
               />
-              <Label htmlFor="reportedToPolice" className="text-sm font-normal text-gray-700 dark:text-gray-300">
+              <Label htmlFor="reportedToPolice" className="text-sm font-normal text-foreground">
                 I have also reported this incident to the police.
-                <span className="block text-xs text-gray-500">
+                <span className="block text-xs text-muted-foreground">
                   Drivers with multiple reports that have been taken to the police are marked as high risk.
                 </span>
               </Label>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting || mutation.isPending}>
-              {mutation.isPending ? 'Submitting…' : 'Submit Report'}
+            <Button type="submit" className="w-full" isLoading={isSubmitting || mutation.isPending}>
+              Submit Report
             </Button>
           </form>
         </CardContent>

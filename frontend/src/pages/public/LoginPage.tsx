@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Shield } from 'lucide-react'
+import { Logo } from '@/components/Logo'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -23,7 +23,11 @@ export function LoginPage() {
   const location = useLocation()
   const redirect = location.state as { from?: string; prefill?: unknown } | null
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
 
@@ -56,9 +60,9 @@ export function LoginPage() {
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
         <div className="flex justify-center mb-2">
-          <Shield className="h-10 w-10 text-blue-600" />
+          <Logo size="xl" variant="dp" />
         </div>
-        <CardTitle className="text-2xl">Sign in to RydrSafe</CardTitle>
+        <CardTitle className="font-display text-2xl">Sign in to RydrSafe</CardTitle>
         <CardDescription>Verify drivers before your next ride</CardDescription>
       </CardHeader>
       <CardContent>
@@ -66,28 +70,28 @@ export function LoginPage() {
           <div className="space-y-1">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" placeholder="you@example.com" {...register('email')} />
-            {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+            {errors.email && <p className="text-xs text-highrisk">{errors.email.message}</p>}
           </div>
           <div className="space-y-1">
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" placeholder="••••••••" {...register('password')} />
-            {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+            {errors.password && <p className="text-xs text-highrisk">{errors.password.message}</p>}
           </div>
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
+          <Button type="submit" className="w-full" isLoading={isSubmitting}>
+            Sign in
           </Button>
         </form>
       </CardContent>
       <CardFooter className="flex-col gap-3">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           Don't have an account?{' '}
-          <Link to="/register" className="text-blue-600 hover:underline font-medium">
+          <Link to="/register" className="text-teal-600 hover:underline font-medium">
             Sign up
           </Link>
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           Just want to check a driver?{' '}
-          <Link to="/verify" className="text-blue-600 hover:underline font-medium">
+          <Link to="/verify" className="text-teal-600 hover:underline font-medium">
             Verify without an account
           </Link>
         </p>

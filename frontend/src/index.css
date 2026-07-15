@@ -3,11 +3,6 @@
    Radix data-[state] attributes. CSS only — no components, no runtime. */
 @import "tw-animate-css";
 
-/* Without this, Tailwind v4 compiles `dark:` to a prefers-color-scheme media query.
-   Nothing ever applies `.dark`, so gating it here keeps the remaining dark: classes
-   inert until they are stripped for good. */
-@custom-variant dark (&:is(.dark *));
-
 /* Role personality without per-page guesswork: AppShell stamps data-density on <main>
    from navConfig (passenger comfortable, moderator/admin compact) and components
    declare their own response once — `p-6 compact:p-4`. */

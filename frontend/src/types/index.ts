@@ -79,6 +79,8 @@ export interface VerificationResult {
   riskScore: number
   reportCount: number
   driverId?: string
+  /** False when no driver record matched the lookup — distinct from a genuinely clean Safe record. */
+  matchFound: boolean
 }
 
 export interface PaginatedResponse<T> {
