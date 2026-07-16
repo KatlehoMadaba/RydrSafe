@@ -4,6 +4,7 @@ import { Toaster } from 'sonner'
 import { AuthProvider, useAuth } from '@/hooks/useAuth'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 import { PublicLayout } from '@/layouts/PublicLayout'
 import { PassengerLayout } from '@/layouts/PassengerLayout'
@@ -23,12 +24,16 @@ import { ProfilePage } from '@/pages/passenger/ProfilePage'
 import { ModeratorDashboardPage } from '@/pages/moderator/ModeratorDashboardPage'
 import { ModeratorReportsPage } from '@/pages/moderator/ReportsPage'
 import { ModeratorDriversPage } from '@/pages/moderator/DriversPage'
-import { ModeratorNotificationsPage } from '@/pages/moderator/NotificationsPage'
+
+import { NotificationsPage } from '@/pages/shared/NotificationsPage'
 
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage'
 import { AdminUsersPage } from '@/pages/admin/UsersPage'
 import { AdminModeratorsPage } from '@/pages/admin/ModeratorsPage'
 import { AdminAnalyticsPage } from '@/pages/admin/AnalyticsPage'
+
+import { DesignSystemPage } from '@/pages/dev/DesignSystemPage'
+import { VerificationStatesPage } from '@/pages/dev/VerificationStatesPage'
 
 const qc = new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 30_000 } } })
 
@@ -47,55 +52,78 @@ function RootRedirect() {
 
 export default function App() {
   return (
-    <QueryClientProvider client={qc}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Public */}
-            <Route element={<PublicLayout />}>
-              <Route path="/verify" element={<VerifyDriverPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/unauthorized" element={<UnauthorizedPage />} />
-            </Route>
-
-            {/* Passenger */}
-            <Route element={<ProtectedRoute allowedRoles={['passenger']} />}>
-              <Route element={<PassengerLayout />}>
-                <Route path="/passenger/dashboard" element={<PassengerDashboardPage />} />
-                <Route path="/passenger/verify" element={<VerifyDriverPage />} />
-                <Route path="/passenger/report" element={<ReportDriverPage />} />
-                <Route path="/passenger/history" element={<HistoryPage />} />
-                <Route path="/passenger/profile" element={<ProfilePage />} />
+    <ErrorBoundary>
+      <QueryClientProvider client={qc}>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Public */}
+              <Route element={<PublicLayout />}>
+                <Route path="/verify" element={<VerifyDriverPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/unauthorized" element={<UnauthorizedPage />} />
               </Route>
-            </Route>
 
-            {/* Moderator */}
-            <Route element={<ProtectedRoute allowedRoles={['moderator']} />}>
-              <Route element={<ModeratorLayout />}>
-                <Route path="/moderator/dashboard" element={<ModeratorDashboardPage />} />
-                <Route path="/moderator/reports" element={<ModeratorReportsPage />} />
-                <Route path="/moderator/drivers" element={<ModeratorDriversPage />} />
-                <Route path="/moderator/notifications" element={<ModeratorNotificationsPage />} />
+              {/* Passenger */}
+              <Route element={<ProtectedRoute allowedRoles={['passenger']} />}>
+                <Route element={<PassengerLayout />}>
+                  <Route path="/passenger/dashboard" element={<PassengerDashboardPage />} />
+                  <Route path="/passenger/verify" element={<VerifyDriverPage />} />
+                  <Route path="/passenger/report" element={<ReportDriverPage />} />
+                  <Route path="/passenger/history" element={<HistoryPage />} />
+                  <Route path="/passenger/profile" element={<ProfilePage />} />
+                  <Route path="/passenger/alerts" element={<NotificationsPage />} />
+                </Route>
               </Route>
-            </Route>
 
-            {/* Admin */}
-            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-              <Route element={<AdminLayout />}>
-                <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-                <Route path="/admin/users" element={<AdminUsersPage />} />
-                <Route path="/admin/moderators" element={<AdminModeratorsPage />} />
-                <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+              {/* Moderator */}
+              <Route element={<ProtectedRoute allowedRoles={['moderator']} />}>
+                <Route element={<ModeratorLayout />}>
+                  <Route path="/moderator/dashboard" element={<ModeratorDashboardPage />} />
+                  <Route path="/moderator/reports" element={<ModeratorReportsPage />} />
+                  <Route path="/moderator/drivers" element={<ModeratorDriversPage />} />
+                  <Route path="/moderator/notifications" element={<NotificationsPage />} />
+                </Route>
               </Route>
-            </Route>
 
-            <Route path="/" element={<RootRedirect />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </BrowserRouter>
-        <Toaster position="top-right" richColors />
-      </AuthProvider>
-    </QueryClientProvider>
+              {/* Admin */}
+              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                <Route element={<AdminLayout />}>
+                  <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+                  <Route path="/admin/users" element={<AdminUsersPage />} />
+                  <Route path="/admin/moderators" element={<AdminModeratorsPage />} />
+                  <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+                </Route>
+              </Route>
+
+              {/* Design system review surface. import.meta.env.DEV is statically
+                  replaced at build time, so this route and its page are dropped from
+                  production bundles. React Router ignores the `false` child. */}
+              {import.meta.env.DEV && <Route path="/dev/system" element={<DesignSystemPage />} />}
+              {import.meta.env.DEV && <Route path="/dev/states" element={<VerificationStatesPage />} />}
+
+              <Route path="/" element={<RootRedirect />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </BrowserRouter>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              classNames: {
+                toast: 'rounded-xl border border-border bg-card text-foreground shadow-lg',
+                title: 'font-medium',
+                description: 'text-muted-foreground',
+                actionButton: 'bg-primary text-primary-foreground',
+                cancelButton: 'bg-muted text-foreground',
+                success: 'border-l-4 border-l-safe',
+                error: 'border-l-4 border-l-highrisk',
+                warning: 'border-l-4 border-l-review',
+              },
+            }}
+          />
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   )
 }

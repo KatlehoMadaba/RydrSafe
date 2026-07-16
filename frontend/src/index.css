@@ -1,64 +1,235 @@
 @import "tailwindcss";
+/* Supplies the animate-in / fade-in-0 / zoom-in-95 utilities that shadcn emits on
+   Radix data-[state] attributes. CSS only — no components, no runtime. */
+@import "tw-animate-css";
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
-    --success: 142.1 76.2% 36.3%;
-    --warning: 38 92% 50%;
-    --danger: 0 84.2% 60.2%;
+/* Role personality without per-page guesswork: AppShell stamps data-density on <main>
+   from navConfig (passenger comfortable, moderator/admin compact) and components
+   declare their own response once — `p-6 compact:p-4`. */
+@custom-variant compact (&:is([data-density="compact"] *));
+
+@theme {
+  /* ============================================================
+     Brand — Deep Navy (primary) and Soft Teal (secondary)
+     ============================================================ */
+  --color-navy-50: #f2f6fa;
+  --color-navy-100: #e2ebf3;
+  --color-navy-200: #c5d6e6;
+  --color-navy-300: #9ab4ce;
+  --color-navy-400: #5c82a6;
+  --color-navy-500: #2e5a82;
+  --color-navy-600: #1f4468;
+  --color-navy-700: #17324d; /* brand primary */
+  --color-navy-800: #11253a;
+  --color-navy-900: #0b1927;
+  --color-navy-950: #060f18;
+
+  /* Overrides Tailwind's stock teal — grep confirms zero existing teal-* usage. */
+  --color-teal-50: #f0f9f8;
+  --color-teal-100: #d9f0ee;
+  --color-teal-200: #b4e1dd;
+  --color-teal-300: #82cac5;
+  --color-teal-400: #4faaa5;
+  --color-teal-500: #2f7d7a; /* brand secondary */
+  --color-teal-600: #276866;
+  --color-teal-700: #215453;
+  --color-teal-800: #1b4342;
+  --color-teal-900: #163534;
+  --color-teal-950: #0e2423;
+
+  /* ============================================================
+     shadcn token contract — `npx shadcn add` emits these names, so they
+     must exist or every generated component is born unstyled.
+     Note `secondary` and `accent` are muted SURFACES in shadcn's semantics,
+     not brand accents. Teal must never be mapped onto them.
+     ============================================================ */
+  --color-background: #f7f9fb;
+  --color-foreground: #1b2733;
+  --color-card: #ffffff;
+  --color-card-foreground: #1b2733;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1b2733;
+  --color-primary: #17324d;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f1f4f7;
+  --color-secondary-foreground: #1b2733;
+  --color-muted: #f1f4f7;
+  --color-muted-foreground: #5a6b7c; /* 4.9:1 on white — the AA floor, do not lighten */
+  --color-accent: #edf2f7;
+  --color-accent-foreground: #17324d;
+  --color-destructive: #9b1c2e;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #e3e8ee;
+  --color-input: #e3e8ee;
+  --color-ring: #2f7d7a; /* teal focus ring — reads on both navy and white */
+
+  --color-border-strong: #cfd6df;
+  --color-subtle: #8c9aa8; /* 2.8:1 — decorative and placeholders ONLY, never body text */
+
+  /* ============================================================
+     Semantic status — communication colors, not branding.
+     Every state carries the same 5-part shape so "never rely on color alone"
+     is structurally supported rather than left to each caller:
+       base        solid fill + icon
+       -foreground text on base
+       -soft       surface tint
+       -muted      border on soft
+       -strong     text on soft
+     ============================================================ */
+  --color-safe: #2e6b4f; /* muted forest green */
+  --color-safe-foreground: #ffffff;
+  --color-safe-soft: #edf6f1;
+  --color-safe-muted: #c9e4d5;
+  --color-safe-strong: #1f4d39;
+
+  --color-review: #b0740f; /* warm amber */
+  --color-review-foreground: #ffffff;
+  --color-review-soft: #fdf6e9;
+  --color-review-muted: #f2dfb8;
+  --color-review-strong: #7a4e08;
+
+  --color-flagged: #b4501e; /* burnt orange */
+  --color-flagged-foreground: #ffffff;
+  --color-flagged-soft: #fdf1eb;
+  --color-flagged-muted: #f5d2be;
+  --color-flagged-strong: #8a3c14;
+
+  --color-highrisk: #9b1c2e; /* deep crimson */
+  --color-highrisk-foreground: #ffffff;
+  --color-highrisk-soft: #fceef0;
+  --color-highrisk-muted: #f3c9cf;
+  --color-highrisk-strong: #7a1524;
+
+  /* Fifth state. Deliberately neutral — an unverified driver is not a safe
+     driver, and must never render green. */
+  --color-norecord: #4a5c6e;
+  --color-norecord-foreground: #ffffff;
+  --color-norecord-soft: #f1f4f7;
+  --color-norecord-muted: #d8e0e8;
+  --color-norecord-strong: #34424f;
+
+  /* ============================================================
+     Typography — fontsource variable builds; the ` Variable` suffix is
+     load-bearing (a wrong name falls back to system-ui silently).
+     Manrope's axis is 200-800, so font-extrabold is the ceiling.
+     ============================================================ */
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* ============================================================
+     Spacing / radius / elevation
+     ============================================================ */
+  --spacing: 0.25rem;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem; /* card default */
+  --radius-2xl: 1.25rem; /* hero panel */
+  --radius-3xl: 1.75rem;
+
+  /* Navy-tinted, never pure black — this is what reads as "soft elevation". */
+  --shadow-xs: 0 1px 2px 0 rgb(23 50 77 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(23 50 77 / 0.06), 0 1px 2px -1px rgb(23 50 77 / 0.04);
+  --shadow-md: 0 4px 12px -2px rgb(23 50 77 / 0.08), 0 2px 6px -2px rgb(23 50 77 / 0.05);
+  --shadow-lg: 0 12px 28px -6px rgb(23 50 77 / 0.1), 0 4px 10px -4px rgb(23 50 77 / 0.06);
+  --shadow-xl: 0 24px 48px -12px rgb(23 50 77 / 0.14);
+
+  /* ============================================================
+     Motion — clarity, not delight. Nothing loops except the scan sweep,
+     which communicates ongoing work.
+     ============================================================ */
+  --ease-calm: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-fade-in: fade-in 0.24s ease-out both;
+  --animate-rise: rise 0.32s var(--ease-calm) both;
+  --animate-rise-firm: rise-firm 0.4s var(--ease-calm) both;
+  --animate-ring-draw: ring-draw 0.9s var(--ease-calm) forwards;
+  --animate-scan: scan 1.6s linear infinite;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* High Risk entrance. Firmer, not louder — no pulse, no shake. */
+  @keyframes rise-firm {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Callers set both custom properties inline from the ring geometry. */
+  @keyframes ring-draw {
+    from {
+      stroke-dashoffset: var(--ring-circumference);
+    }
+    to {
+      stroke-dashoffset: var(--ring-offset-target);
+    }
+  }
+
+  @keyframes scan {
+    to {
+      transform: rotate(360deg);
+    }
   }
 }
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    border-color: var(--color-border);
   }
+
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* One global guard beats auditing every component for reduced-motion support. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Search, Flag, History, ShieldCheck, AlertTriangle, TrendingUp } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { StatCard, StatCardGrid } from '@/components/dashboard/StatCard'
 import { useAuth } from '@/hooks/useAuth'
 import { verificationApi } from '@/api/verification'
 import { followApi } from '@/api/follow'
@@ -21,53 +22,39 @@ export function PassengerDashboardPage() {
     queryFn: () => followApi.getFollowedDrivers(),
   })
 
-  const { data: verificationStats } = useQuery({
+  const { data: verificationStats, isLoading: statsLoading } = useQuery({
     queryKey: ['verification-stats'],
     queryFn: () => verificationApi.getStats(),
   })
 
-  const stats = [
-    { label: 'Verifications Done', value: verificationStats?.total ?? 0, icon: ShieldCheck, color: 'text-blue-600 bg-blue-50' },
-    { label: 'Flagged Drivers Found', value: verificationStats?.flagged ?? 0, icon: AlertTriangle, color: 'text-red-600 bg-red-50' },
-    { label: 'Safe Verifications', value: verificationStats?.safe ?? 0, icon: TrendingUp, color: 'text-green-600 bg-green-50' },
-  ]
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Welcome back, {user?.fullName?.split(' ')[0]}
-        </h1>
-        <p className="text-gray-500 mt-1">Stay safe — verify your driver before every ride.</p>
+        <h1 className="font-display text-2xl font-bold text-foreground">Welcome back, {user?.fullName?.split(' ')[0]}</h1>
+        <p className="text-muted-foreground mt-1">Stay safe — verify your driver before every ride.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {stats.map(({ label, value, icon: Icon, color }) => (
-          <Card key={label}>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-lg ${color}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-                  <p className="text-sm text-gray-500">{label}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <StatCardGrid columns={3}>
+        <StatCard label="Verifications Done" value={verificationStats?.total ?? 0} icon={ShieldCheck} accent="navy" isLoading={statsLoading} />
+        <StatCard
+          label="Flagged Drivers Found"
+          value={verificationStats?.flagged ?? 0}
+          icon={AlertTriangle}
+          accent="highrisk"
+          isLoading={statsLoading}
+        />
+        <StatCard label="Safe Verifications" value={verificationStats?.safe ?? 0} icon={TrendingUp} accent="safe" isLoading={statsLoading} />
+      </StatCardGrid>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="border-2 border-blue-100 hover:border-blue-300 transition-colors">
+        <Card className="border-2 border-teal-100 hover:border-teal-300 transition-colors">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center gap-3 py-4">
-              <div className="p-4 bg-blue-50 rounded-full">
-                <Search className="h-8 w-8 text-blue-600" />
+              <div className="p-4 bg-teal-50 rounded-full">
+                <Search className="h-8 w-8 text-teal-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">Verify a Driver</h3>
-              <p className="text-sm text-gray-500">Upload your ride screenshot to check a driver's safety history</p>
+              <h3 className="font-semibold text-foreground">Verify a Driver</h3>
+              <p className="text-sm text-muted-foreground">Upload your ride screenshot to check a driver's safety history</p>
               <Button asChild className="mt-2">
                 <Link to="/passenger/verify">Verify Now</Link>
               </Button>
@@ -75,15 +62,15 @@ export function PassengerDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-2 border-orange-100 hover:border-orange-300 transition-colors">
+        <Card className="border-2 border-review-muted hover:border-review transition-colors">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center gap-3 py-4">
-              <div className="p-4 bg-orange-50 rounded-full">
-                <Flag className="h-8 w-8 text-orange-600" />
+              <div className="p-4 bg-review-soft rounded-full">
+                <Flag className="h-8 w-8 text-review" />
               </div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">Report a Driver</h3>
-              <p className="text-sm text-gray-500">Help the community by reporting unsafe or suspicious behaviour</p>
-              <Button asChild variant="outline" className="mt-2 border-orange-300 text-orange-700 hover:bg-orange-50">
+              <h3 className="font-semibold text-foreground">Report a Driver</h3>
+              <p className="text-sm text-muted-foreground">Help the community by reporting unsafe or suspicious behaviour</p>
+              <Button asChild variant="soft" className="mt-2">
                 <Link to="/passenger/report">File Report</Link>
               </Button>
             </div>
@@ -95,19 +82,21 @@ export function PassengerDashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-500" />
+              <AlertTriangle className="h-4 w-4 text-highrisk" />
               Flagged Drivers You're Tracking
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {followedDrivers.map((d: any) => (
-                <div key={d.id} className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2 last:border-0">
+              {followedDrivers.map((d) => (
+                <div key={d.id} className="flex items-center justify-between border-b border-border pb-2 last:border-0">
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{d.driverName}</p>
-                    <p className="text-xs text-gray-500">{d.registrationNumber} · {d.reportCount} report{d.reportCount !== 1 ? 's' : ''}</p>
+                    <p className="text-sm font-medium text-foreground">{d.driverName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {d.registrationNumber ?? '—'} · {d.reportCount} report{d.reportCount !== 1 ? 's' : ''}
+                    </p>
                   </div>
-                  <RiskBadge status={d.status} />
+                  <RiskBadge state={d.status} />
                 </div>
               ))}
             </div>
@@ -120,18 +109,20 @@ export function PassengerDashboardPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Recent Verifications</CardTitle>
             <Button asChild variant="ghost" size="sm">
-              <Link to="/passenger/history">View all <History className="ml-1 h-3 w-3" /></Link>
+              <Link to="/passenger/history">
+                View all <History className="ml-1 h-3 w-3" />
+              </Link>
             </Button>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {recentHistory.items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
+                <div key={item.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                   <div>
-                    <p className="font-medium text-sm text-gray-900 dark:text-white">{item.driverName}</p>
-                    <p className="text-xs text-gray-500">{item.registrationNumber}</p>
+                    <p className="font-medium text-sm text-foreground">{item.driverName}</p>
+                    <p className="text-xs text-muted-foreground">{item.registrationNumber}</p>
                   </div>
-                  <RiskBadge status={item.status} />
+                  <RiskBadge state={item.status} />
                 </div>
               ))}
             </div>
