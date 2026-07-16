@@ -36,8 +36,10 @@ export function VerificationResultPanel({ result, className }: { result: Verific
       </div>
 
       <div className="space-y-6 p-6">
-        {/* 2. Recommendation */}
-        <Alert variant={presentation.tone}>
+        {/* 2. Recommendation — the outer wrapper already owns the live region
+            (role + aria-live from presentation.live), so suppress Alert's own
+            assertive one to avoid a nested/double announcement. */}
+        <Alert variant={presentation.tone} role="presentation">
           <Icon />
           <AlertTitle>{presentation.label}</AlertTitle>
           <AlertDescription>

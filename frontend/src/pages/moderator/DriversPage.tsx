@@ -59,13 +59,8 @@ export function ModeratorDriversPage() {
                   <TableRow key={driver.id}>
                     <TableCell>
                       <p className="font-medium text-foreground">{driver.driverName}</p>
-                      <p className="text-xs text-muted-foreground">{driver.phoneNumber}</p>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {driver.vehicles?.[0]
-                        ? `${driver.vehicles[0].registrationNumber} · ${driver.vehicles[0].make} ${driver.vehicles[0].model}`
-                        : '—'}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground">{driver.registrationNumber ?? '—'}</TableCell>
                     <TableCell className="text-muted-foreground">{driver.reportCount}</TableCell>
                     <TableCell className="w-40">
                       <RiskScore score={driver.riskScore} />

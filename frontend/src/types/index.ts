@@ -22,6 +22,21 @@ export interface Driver {
 
 export type DriverStatus = 'Safe' | 'UnderReview' | 'Flagged' | 'HighRisk'
 
+/**
+ * Shape returned by the driver *list* endpoints (`DriverListDto`): a flat
+ * `registrationNumber`, with no `vehicles` array and no `phoneNumber`. Distinct
+ * from the full {@link Driver} the detail endpoint returns — keep them apart so
+ * reading a field the list API never sends fails at compile time.
+ */
+export interface DriverListItem {
+  id: string
+  driverName: string
+  riskScore: number
+  status: DriverStatus
+  reportCount: number
+  registrationNumber: string | null
+}
+
 export interface Vehicle {
   id: string
   driverId: string

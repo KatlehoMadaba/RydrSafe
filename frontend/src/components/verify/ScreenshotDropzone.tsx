@@ -53,7 +53,12 @@ export function ScreenshotDropzone({ files, onAddFiles, onRemoveFile }: Screensh
           multiple
           accept="image/jpeg,image/png,image/webp"
           className="hidden"
-          onChange={(e) => onAddFiles(e.target.files)}
+          // Reset the value so re-selecting a just-removed file still fires
+          // change (browsers suppress it when the selected value is identical).
+          onChange={(e) => {
+            onAddFiles(e.target.files)
+            e.target.value = ''
+          }}
         />
       </div>
       {files.length > 0 && (

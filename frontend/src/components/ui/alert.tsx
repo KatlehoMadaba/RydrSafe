@@ -34,9 +34,13 @@ const alertVariants = cva(
 function Alert({
   className,
   variant,
+  // Defaults to the assertive `alert` live region, but callers can override it
+  // (e.g. `role="presentation"`) when an outer element already owns the live
+  // region and a nested one would double-announce.
+  role = 'alert',
   ...props
 }: React.ComponentProps<'div'> & VariantProps<typeof alertVariants>) {
-  return <div data-slot="alert" role="alert" className={cn(alertVariants({ variant }), className)} {...props} />
+  return <div data-slot="alert" role={role} className={cn(alertVariants({ variant }), className)} {...props} />
 }
 
 function AlertTitle({ className, ...props }: React.ComponentProps<'div'>) {

@@ -93,7 +93,7 @@ export function PassengerDashboardPage() {
                   <div>
                     <p className="text-sm font-medium text-foreground">{d.driverName}</p>
                     <p className="text-xs text-muted-foreground">
-                      {d.vehicles?.[0]?.registrationNumber} · {d.reportCount} report{d.reportCount !== 1 ? 's' : ''}
+                      {d.registrationNumber ?? '—'} · {d.reportCount} report{d.reportCount !== 1 ? 's' : ''}
                     </p>
                   </div>
                   <RiskBadge state={d.status} />
