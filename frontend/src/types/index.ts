@@ -86,6 +86,26 @@ export interface Notification {
   createdAt: string
 }
 
+export type RecommendationCategory =
+  | 'FeatureIdea'
+  | 'SafetySuggestion'
+  | 'UsabilityFeedback'
+  | 'BugReport'
+  | 'Other'
+
+export type RecommendationStatus = 'Pending' | 'Reviewed' | 'Planned' | 'Declined'
+
+export interface Recommendation {
+  id: string
+  userId: string
+  user?: User
+  category: RecommendationCategory
+  subject: string
+  message: string
+  status: RecommendationStatus
+  createdAt: string
+}
+
 export interface VerificationResult {
   driverName: string
   registrationNumber: string

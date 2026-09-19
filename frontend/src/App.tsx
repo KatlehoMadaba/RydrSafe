@@ -19,6 +19,7 @@ import { PassengerDashboardPage } from '@/pages/passenger/DashboardPage'
 import { VerifyDriverPage } from '@/pages/passenger/VerifyDriverPage'
 import { ReportDriverPage } from '@/pages/passenger/ReportDriverPage'
 import { HistoryPage } from '@/pages/passenger/HistoryPage'
+import { RecommendationsPage } from '@/pages/passenger/RecommendationsPage'
 import { ProfilePage } from '@/pages/passenger/ProfilePage'
 
 import { ModeratorDashboardPage } from '@/pages/moderator/ModeratorDashboardPage'
@@ -72,6 +73,7 @@ export default function App() {
                   <Route path="/passenger/verify" element={<VerifyDriverPage />} />
                   <Route path="/passenger/report" element={<ReportDriverPage />} />
                   <Route path="/passenger/history" element={<HistoryPage />} />
+                  <Route path="/passenger/recommendations" element={<RecommendationsPage />} />
                   <Route path="/passenger/profile" element={<ProfilePage />} />
                   <Route path="/passenger/alerts" element={<NotificationsPage />} />
                 </Route>
