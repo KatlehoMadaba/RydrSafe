@@ -22,6 +22,21 @@ export interface Driver {
 
 export type DriverStatus = 'Safe' | 'UnderReview' | 'Flagged' | 'HighRisk'
 
+/**
+ * Shape returned by the driver *list* endpoints (`DriverListDto`): a flat
+ * `registrationNumber`, with no `vehicles` array and no `phoneNumber`. Distinct
+ * from the full {@link Driver} the detail endpoint returns — keep them apart so
+ * reading a field the list API never sends fails at compile time.
+ */
+export interface DriverListItem {
+  id: string
+  driverName: string
+  riskScore: number
+  status: DriverStatus
+  reportCount: number
+  registrationNumber: string | null
+}
+
 export interface Vehicle {
   id: string
   driverId: string
@@ -71,9 +86,11 @@ export type AppealStatus = 'Received' | 'UnderReview' | 'Upheld' | 'Dismissed' |
 export interface Report {
   id: string
   driverId: string
-  driver?: Driver
+  /** Flattened by the API (ReportDto), which sends a name string rather than a nested driver object. */
+  driverName: string
   userId: string
-  user?: User
+  /** Likewise flattened — the reporter's full name, not a nested user object. */
+  reporterName: string
   category: ReportCategory
   classification: ReportClassification
   severity: ReportSeverity
@@ -159,6 +176,26 @@ export interface Notification {
   createdAt: string
 }
 
+export type RecommendationCategory =
+  | 'FeatureIdea'
+  | 'SafetySuggestion'
+  | 'UsabilityFeedback'
+  | 'BugReport'
+  | 'Other'
+
+export type RecommendationStatus = 'Pending' | 'Reviewed' | 'Planned' | 'Declined'
+
+export interface Recommendation {
+  id: string
+  userId: string
+  user?: User
+  category: RecommendationCategory
+  subject: string
+  message: string
+  status: RecommendationStatus
+  createdAt: string
+}
+
 export interface VerificationResult {
   driverName: string
   registrationNumber: string
@@ -169,6 +206,8 @@ export interface VerificationResult {
   riskScore: number
   reportCount: number
   driverId?: string
+  /** False when no driver record matched the lookup — distinct from a genuinely clean Safe record. */
+  matchFound: boolean
 }
 
 export interface PaginatedResponse<T> {

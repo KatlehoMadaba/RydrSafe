@@ -30,6 +30,13 @@ public interface IReportRepository
     Task AddAsync(Report report);
     Task UpdateAsync(Report report);
 
+    /// <summary>
+    /// Clause 29.2 — unlink every report this account submitted, keeping the reports themselves.
+    /// They concern drivers who may still be disputing them, so they survive the account.
+    /// Returns how many rows were de-identified, so the caller can tell the user.
+    /// </summary>
+    Task<int> DeIdentifyByUserAsync(Guid userId);
+
     /// <summary>Clause 29 — reports past their retention date, for the purge worker.</summary>
     Task<IEnumerable<Report>> GetExpiredAsync(DateTime cutoff, int batchSize);
     Task DeleteRangeAsync(IEnumerable<Report> reports);

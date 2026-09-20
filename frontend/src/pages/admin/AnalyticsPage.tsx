@@ -2,10 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import { reportsApi } from '@/api/reports'
 import { driversApi } from '@/api/drivers'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { RiskBadge } from '@/components/RiskBadge'
 import { RiskScore } from '@/components/RiskScore'
+import { RISK_PRESENTATION } from '@/lib/riskStatus'
+import type { DriverStatus } from '@/types'
 
 const CATEGORIES = ['RecklessDriving', 'Harassment', 'Assault', 'Theft', 'Fraud', 'UnsafeVehicle', 'IntoxicatedDriving', 'Other']
+const DRIVER_STATUSES: DriverStatus[] = ['Safe', 'UnderReview', 'Flagged', 'HighRisk']
 
 export function AdminAnalyticsPage() {
   const { data: reports } = useQuery({ queryKey: ['all-reports'], queryFn: () => reportsApi.getAll({ pageSize: 500 }) })
@@ -16,25 +19,25 @@ export function AdminAnalyticsPage() {
     count: reports?.items.filter(r => r.category === cat).length ?? 0,
   })).sort((a, b) => b.count - a.count)
 
-  const statusCounts = {
-    Safe: drivers?.items.filter(d => d.status === 'Safe').length ?? 0,
-    UnderReview: drivers?.items.filter(d => d.status === 'UnderReview').length ?? 0,
-    Flagged: drivers?.items.filter(d => d.status === 'Flagged').length ?? 0,
-    HighRisk: drivers?.items.filter(d => d.status === 'HighRisk').length ?? 0,
-  }
+  const statusCounts = DRIVER_STATUSES.map((status) => ({
+    status,
+    label: RISK_PRESENTATION[status].label,
+    count: drivers?.items.filter((d) => d.status === status).length ?? 0,
+  }))
 
-  const topRisk = (drivers?.items ?? []).sort((a, b) => b.riskScore - a.riskScore).slice(0, 5)
+  // Copy before sorting — sort() mutates in place, and `items` is react-query's cached array.
+  const topRisk = [...(drivers?.items ?? [])].sort((a, b) => b.riskScore - a.riskScore).slice(0, 5)
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Analytics</h1>
+      <h1 className="font-display text-2xl font-bold text-foreground">Analytics</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {Object.entries(statusCounts).map(([status, count]) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        {statusCounts.map(({ status, label, count }) => (
           <Card key={status}>
             <CardContent className="pt-6 text-center">
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">{count}</p>
-              <p className="text-sm text-gray-500 mt-1">{status.replace(/([A-Z])/g, ' $1').trim()}</p>
+              <p className="text-3xl font-bold text-foreground">{count}</p>
+              <p className="text-sm text-muted-foreground mt-1">{label}</p>
             </CardContent>
           </Card>
         ))}
@@ -50,14 +53,11 @@ export function AdminAnalyticsPage() {
                 return (
                   <div key={category}>
                     <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-gray-700 dark:text-gray-300">{category}</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{count}</span>
+                      <span className="text-foreground">{category}</span>
+                      <span className="font-medium text-foreground">{count}</span>
                     </div>
-                    <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full">
-                      <div
-                        className="h-2 bg-blue-500 rounded-full transition-all"
-                        style={{ width: `${(count / max) * 100}%` }}
-                      />
+                    <div className="h-2 bg-muted rounded-full">
+                      <div className="h-2 bg-teal-500 rounded-full transition-all" style={{ width: `${(count / max) * 100}%` }} />
                     </div>
                   </div>
                 )
@@ -73,15 +73,13 @@ export function AdminAnalyticsPage() {
               {topRisk.map((driver) => (
                 <div key={driver.id}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">{driver.driverName}</span>
-                    <Badge variant={driver.status === 'HighRisk' ? 'destructive' : driver.status === 'Flagged' ? 'warning' : 'secondary'}>
-                      {driver.status}
-                    </Badge>
+                    <span className="text-sm font-medium text-foreground">{driver.driverName}</span>
+                    <RiskBadge state={driver.status} />
                   </div>
                   <RiskScore score={driver.riskScore} />
                 </div>
               ))}
-              {topRisk.length === 0 && <p className="text-sm text-gray-500 text-center py-4">No driver data available</p>}
+              {topRisk.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No driver data available</p>}
             </div>
           </CardContent>
         </Card>

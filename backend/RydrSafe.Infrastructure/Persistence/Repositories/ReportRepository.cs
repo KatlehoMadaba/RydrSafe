@@ -62,6 +62,27 @@ public class ReportRepository(AppDbContext db) : IReportRepository
         await db.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// The description stays: it is the substance of the allegation and a driver appealing under
+    /// Part C is entitled to have it reviewed. What goes is the link to the person who wrote it.
+    /// <c>ReporterKeyHash</c> stays too — it carries no identity on its own, and clause 6.3(a)
+    /// needs it to keep telling reporters apart.
+    /// </summary>
+    public async Task<int> DeIdentifyByUserAsync(Guid userId)
+    {
+        var reports = await db.Reports.Where(r => r.UserId == userId).ToListAsync();
+        var now = DateTime.UtcNow;
+
+        foreach (var report in reports)
+        {
+            report.UserId = null;
+            report.ReporterDeletedAt = now;
+        }
+
+        if (reports.Count > 0) await db.SaveChangesAsync();
+        return reports.Count;
+    }
+
     public async Task<IEnumerable<Report>> GetExpiredAsync(DateTime cutoff, int batchSize) =>
         await db.Reports
             .Where(r => r.CreatedAt < cutoff)

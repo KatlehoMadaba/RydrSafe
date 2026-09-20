@@ -24,7 +24,8 @@ public class ReportsController(IMediator mediator) : ControllerBase
             request.DriverName, request.RegistrationNumber, userId,
             request.Category, request.Severity, request.Description, request.IncidentDate,
             request.ReportedToPolice, request.OfficialReference, request.DeviceFingerprint,
-            HttpContext.Connection.RemoteIpAddress?.ToString()));
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            request.IsAnonymous));
 
         return CreatedAtAction(nameof(GetById), new { id }, new { id });
     }

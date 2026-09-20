@@ -33,7 +33,10 @@ public class GetReportByIdQueryHandler(
         r.DriverId,
         r.Driver?.DriverName ?? string.Empty,
         r.UserId,
-        r.User?.FullName ?? string.Empty,
+        // Clause 29.2 leaves the report standing after its reporter closes their account, so
+        // there is genuinely no name to show — say which it is rather than render a blank.
+        r.User?.FullName ?? (r.UserId is null ? "Deleted account" : string.Empty),
+        r.IsAnonymous,
         r.Category.ToString(),
         r.Classification.ToString(),
         r.Severity.ToString(),

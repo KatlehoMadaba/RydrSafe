@@ -1,28 +1,35 @@
 import { Progress } from '@/components/ui/progress'
+import { scoreTone } from '@/lib/riskStatus'
 import { cn } from '@/lib/utils'
 
-function scoreColor(score: number) {
-  if (score < 30) return 'text-green-600'
-  if (score < 60) return 'text-yellow-600'
-  if (score < 80) return 'text-orange-600'
-  return 'text-red-600'
-}
+// Literal per-tone classes — scoreTone() returns the tone name, not a class string,
+// so Tailwind's static scanner can still see every class used here.
+const TEXT_CLASS = {
+  safe: 'text-safe-strong',
+  review: 'text-review-strong',
+  flagged: 'text-flagged-strong',
+  highrisk: 'text-highrisk-strong',
+  norecord: 'text-norecord-strong',
+} as const
 
-function barColor(score: number) {
-  if (score < 30) return '[&>div]:bg-green-500'
-  if (score < 60) return '[&>div]:bg-yellow-500'
-  if (score < 80) return '[&>div]:bg-orange-500'
-  return '[&>div]:bg-red-500'
-}
+const BAR_CLASS = {
+  safe: 'bg-safe',
+  review: 'bg-review',
+  flagged: 'bg-flagged',
+  highrisk: 'bg-highrisk',
+  norecord: 'bg-norecord',
+} as const
 
 export function RiskScore({ score }: { score: number }) {
+  const tone = scoreTone(score)
+
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-500">Risk Score</span>
-        <span className={cn('text-sm font-bold', scoreColor(score))}>{score}/100</span>
+        <span className="text-xs text-muted-foreground">Risk Score</span>
+        <span className={cn('text-sm font-bold', TEXT_CLASS[tone])}>{score}/100</span>
       </div>
-      <Progress value={score} className={barColor(score)} />
+      <Progress value={score} indicatorClassName={BAR_CLASS[tone]} aria-label={`Risk score ${score} out of 100`} />
     </div>
   )
 }

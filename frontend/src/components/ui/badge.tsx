@@ -1,18 +1,29 @@
 import * as React from 'react'
+import type { LucideIcon } from 'lucide-react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors',
+  'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors',
   {
     variants: {
       variant: {
-        default: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-        secondary: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
-        destructive: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-        success: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-        warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-        outline: 'border border-gray-300 text-gray-700',
+        // Legacy variants, retargeted onto tokens. Callsites migrate to the status
+        // variants below in the risk-status pass, after which these can go.
+        default: 'border-transparent bg-navy-100 text-navy-800',
+        secondary: 'border-transparent bg-secondary text-secondary-foreground',
+        destructive: 'border-transparent bg-highrisk-soft text-highrisk-strong',
+        success: 'border-transparent bg-safe-soft text-safe-strong',
+        warning: 'border-transparent bg-review-soft text-review-strong',
+        outline: 'border-border text-foreground',
+
+        // Status variants. These use the soft ramps rather than solid fills:
+        // white on solid amber is only 4.7:1, which fails at badge text sizes.
+        safe: 'border-safe-muted bg-safe-soft text-safe-strong',
+        review: 'border-review-muted bg-review-soft text-review-strong',
+        flagged: 'border-flagged-muted bg-flagged-soft text-flagged-strong',
+        highrisk: 'border-highrisk-muted bg-highrisk-soft text-highrisk-strong',
+        norecord: 'border-norecord-muted bg-norecord-soft text-norecord-strong',
       },
     },
     defaultVariants: { variant: 'default' },
@@ -21,10 +32,18 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {
+  /** Pairs an icon with the label so status never rests on colour alone. */
+  icon?: LucideIcon
+}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />
+function Badge({ className, variant, icon: Icon, children, ...props }: BadgeProps) {
+  return (
+    <div className={cn(badgeVariants({ variant }), className)} {...props}>
+      {Icon ? <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> : null}
+      {children}
+    </div>
+  )
 }
 
 export { Badge, badgeVariants }

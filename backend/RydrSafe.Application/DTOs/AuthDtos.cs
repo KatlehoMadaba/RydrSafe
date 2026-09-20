@@ -40,3 +40,33 @@ public record ConsentRecordDto(
     DateTime AcceptedAt,
     DateTime? WithdrawnAt
 );
+
+/// <summary>
+/// Clause 4 — a user correcting their own account details, which POPIA s24 gives them the right
+/// to do. Changing the email address changes the sign-in identity, so it is verified for
+/// uniqueness server-side.
+/// </summary>
+public record UpdateProfileRequest(string FullName, string Email);
+
+/// <summary>
+/// An in-app password change. The current password is required: an unattended session should not
+/// be enough to lock the real account holder out.
+/// </summary>
+public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
+
+/// <summary>
+/// Clause 29 / POPIA s24 — the account holder deleting their own account. The password is
+/// required because the action is immediate and cannot be undone.
+/// </summary>
+public record DeleteAccountRequest(string Password, string? Reason = null);
+
+/// <summary>
+/// What was actually done, so the confirmation screen can say it rather than promise it.
+/// <paramref name="ReportsDeIdentified"/> is the clause 29.2 count: reports are kept but unlinked.
+/// </summary>
+public record DeleteAccountResponse(
+    string Email,
+    int ReportsDeIdentified,
+    DateTime DeletedAt,
+    string Message
+);

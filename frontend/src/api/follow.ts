@@ -1,9 +1,9 @@
 import { apiClient } from './client'
-import type { Driver } from '@/types'
+import type { DriverListItem } from '@/types'
 
 export const followApi = {
   getFollowedDrivers: () =>
-    apiClient.get<Driver[]>('/api/follow/drivers').then((r) => r.data),
+    apiClient.get<DriverListItem[]>('/api/follow/drivers').then((r) => r.data),
   follow: (driverId: string) =>
     apiClient.post(`/api/drivers/${driverId}/follow`).then((r) => r.data),
   unfollow: (driverId: string) =>

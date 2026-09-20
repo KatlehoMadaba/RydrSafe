@@ -16,7 +16,14 @@ public record CreateReportRequest(
     /// Opaque client-generated device fingerprint. Hashed on arrival and used only for the
     /// clause 6.3(a) independence check. Disclosed in Part B clause 20.1.
     /// </summary>
-    string? DeviceFingerprint = null
+    string? DeviceFingerprint = null,
+
+    /// <summary>
+    /// Clause 6.4. Withhold the reporter's name from the moderation queue. The report stays
+    /// linked to the account underneath, because corroboration and abuse handling depend on it —
+    /// the report form says so rather than promising an anonymity we do not provide.
+    /// </summary>
+    bool IsAnonymous = false
 );
 
 /// <summary>
@@ -27,8 +34,20 @@ public record ReportDto(
     Guid Id,
     Guid DriverId,
     string DriverName,
-    Guid UserId,
+
+    /// <summary>Null once the reporter's account has been deleted (clause 29.2).</summary>
+    Guid? UserId,
+
+    /// <summary>
+    /// The reporter's name, or "Deleted account" once the report has been de-identified.
+    /// Moderators still see it on an anonymous report — they need it for clause 37 abuse
+    /// handling — and <see cref="IsAnonymous"/> tells the queue to mark the request. Never
+    /// reachable from a route any other user can call.
+    /// </summary>
     string ReporterName,
+
+    /// <summary>Clause 6.4 — the reporter asked not to be named publicly.</summary>
+    bool IsAnonymous,
     string Category,
     string Classification,
     string Severity,

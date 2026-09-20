@@ -307,6 +307,43 @@ namespace RydrSafe.Infrastructure.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("RydrSafe.Domain.Entities.Recommendation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("Recommendations");
+                });
+
             modelBuilder.Entity("RydrSafe.Domain.Entities.Report", b =>
                 {
                     b.Property<Guid>("Id")
@@ -351,6 +388,9 @@ namespace RydrSafe.Infrastructure.Migrations
                     b.Property<DateTime>("IncidentDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("IsAnonymous")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("OfficialReference")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -391,6 +431,13 @@ namespace RydrSafe.Infrastructure.Migrations
                     b.Property<bool>("ReportedToPolice")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime?>("ReporterDeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReporterKeyHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<string>("Severity")
                         .IsRequired()
                         .HasColumnType("text");
@@ -407,7 +454,7 @@ namespace RydrSafe.Infrastructure.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("WithdrawnAt")
@@ -728,6 +775,17 @@ namespace RydrSafe.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("RydrSafe.Domain.Entities.Recommendation", b =>
+                {
+                    b.HasOne("RydrSafe.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("RydrSafe.Domain.Entities.Report", b =>
                 {
                     b.HasOne("RydrSafe.Domain.Entities.Driver", "Driver")
@@ -739,8 +797,7 @@ namespace RydrSafe.Infrastructure.Migrations
                     b.HasOne("RydrSafe.Domain.Entities.User", "User")
                         .WithMany("Reports")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Driver");
 

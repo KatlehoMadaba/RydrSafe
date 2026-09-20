@@ -18,6 +18,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<UserConsent> UserConsents => Set<UserConsent>();
     public DbSet<DriverAppeal> DriverAppeals => Set<DriverAppeal>();
     public DbSet<DriverRecordAccessLog> DriverRecordAccessLogs => Set<DriverRecordAccessLog>();
+    public DbSet<Recommendation> Recommendations => Set<Recommendation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -83,6 +84,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             // 64 hex chars of SHA-256.
             e.Property(r => r.SubmissionIpHash).HasMaxLength(64);
             e.Property(r => r.SubmissionDeviceHash).HasMaxLength(64);
+            e.Property(r => r.ReporterKeyHash).HasMaxLength(64);
+
+            // The account-deletion sweep updates every report for one reporter.
+            e.HasIndex(r => r.UserId);
 
             // Every public read filters driver + status; the corroboration pass filters the same way.
             e.HasIndex(r => new { r.DriverId, r.Status });
@@ -91,7 +96,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
             e.Ignore(r => r.IsLive);
 
-            e.HasOne(r => r.User).WithMany(u => u.Reports).HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
+            // Restrict, not SetNull: deleting an account must go through DeleteAccountCommand,
+            // which de-identifies the reports deliberately and counts what it touched. A silent
+            // cascade would make clause 29.2 depend on a database setting nobody reads.
+            e.HasOne(r => r.User).WithMany(u => u.Reports)
+                .HasForeignKey(r => r.UserId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
             e.HasMany(r => r.StatusAudits).WithOne(a => a.Report).HasForeignKey(a => a.ReportId).OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -177,6 +186,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(f => new { f.UserId, f.DriverId }).IsUnique();
             e.HasOne(f => f.User).WithMany().HasForeignKey(f => f.UserId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(f => f.Driver).WithMany().HasForeignKey(f => f.DriverId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Recommendation>(e =>
+        {
+            e.HasKey(r => r.Id);
+            e.Property(r => r.Category).HasConversion<string>();
+            e.Property(r => r.Status).HasConversion<string>();
+            e.Property(r => r.Subject).HasMaxLength(120).IsRequired();
+            e.Property(r => r.Message).HasMaxLength(2000).IsRequired();
+            e.HasIndex(r => new { r.UserId, r.CreatedAt });
+            e.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<VerificationHistory>(e =>

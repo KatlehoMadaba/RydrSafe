@@ -26,21 +26,34 @@ public class UploadVerificationCommandHandler(
 {
     public async Task<VerificationResponse> Handle(UploadVerificationCommand request, CancellationToken cancellationToken)
     {
+        // Each screenshot is a separate paid OCR call against a monthly quota, so stop as soon
+        // as we hold enough to identify a driver. These ran in parallel for latency, but that
+        // always spent three calls — and quota, not latency, is what runs out. The short-circuit
+        // makes the three-image case rare enough that the sequential cost rarely applies.
+        //
+        // Clause 25: every image we actually read is hashed and discarded by ExtractAsync, and
+        // recorded below. An image skipped by the short-circuit is never read at all.
         var streams = new[] { request.Image1, request.Image2, request.Image3 }
             .Where(s => s is not null)
             .Select(s => s!)
             .ToList();
 
-        // The three screenshots are independent OCR calls against the same external API, so they
-        // run together. Sequentially this was roughly three round trips of latency per upload,
-        // all of it spent holding a request thread.
-        var extractions = await Task.WhenAll(
-            streams.Select(s => ocrService.ExtractAsync(s, cancellationToken)));
+        var extractions = new List<OcrExtraction>();
+        OcrResult? merged = null;
 
-        var ocr = extractions
-            .Select(e => e.Result)
-            .Aggregate(MergeOcrResults);
+        foreach (var stream in streams)
+        {
+            var extraction = await ocrService.ExtractAsync(stream, cancellationToken);
+            extractions.Add(extraction);
 
+            merged = merged is null
+                ? extraction.Result
+                : MergeOcrResults(merged, extraction.Result);
+
+            if (CanAttemptMatch(merged)) break;
+        }
+
+        var ocr = merged!;
         var imageHashes = string.Join(",", extractions.Select(e => e.ImageHash));
         var imagesDiscardedAt = extractions.Max(e => e.DiscardedAt);
 
@@ -152,6 +165,15 @@ public class UploadVerificationCommandHandler(
             // A notification failure must not prevent the verification response being returned.
         }
     }
+    /// <summary>
+    /// Whether we hold enough to look a driver up without scanning more photos.
+    /// Registration number and phone number are exact lookups; a name alone is not enough,
+    /// because it only reaches the fuzzy match below and extra photos genuinely help there.
+    /// Mirrors the lookup order in <see cref="Handle"/> — keep the two in step.
+    /// </summary>
+    private static bool CanAttemptMatch(OcrResult ocr) =>
+        !string.IsNullOrWhiteSpace(ocr.RegistrationNumber)
+        || !string.IsNullOrWhiteSpace(ocr.PhoneNumber);
 
     private static OcrResult MergeOcrResults(OcrResult a, OcrResult b) => new(
         a.DriverName ?? b.DriverName,

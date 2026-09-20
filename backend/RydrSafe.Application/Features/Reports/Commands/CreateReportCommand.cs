@@ -19,7 +19,8 @@ public record CreateReportCommand(
     bool ReportedToPolice = false,
     string? OfficialReference = null,
     string? DeviceFingerprint = null,
-    string? IpAddress = null) : IRequest<Guid>;
+    string? IpAddress = null,
+    bool IsAnonymous = false) : IRequest<Guid>;
 
 public class CreateReportCommandValidator : AbstractValidator<CreateReportCommand>
 {
@@ -94,6 +95,11 @@ public class CreateReportCommandHandler(
             // fingerprint never reach the database.
             SubmissionIpHash = hashingService.HashIdentifier(request.IpAddress),
             SubmissionDeviceHash = hashingService.HashIdentifier(request.DeviceFingerprint),
+            // Written now, not at deletion time: once the account row is gone there is nothing
+            // left to derive it from, and clause 6.3(a) still has to be able to tell two
+            // de-identified reports apart.
+            ReporterKeyHash = hashingService.HashIdentifier(request.UserId.ToString()),
+            IsAnonymous = request.IsAnonymous,
             Status = ReportStatus.Pending
         };
 

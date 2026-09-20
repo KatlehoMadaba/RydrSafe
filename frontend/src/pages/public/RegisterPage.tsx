@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label'
 import {
   Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
 } from '@/components/ui/card'
-import { Shield } from 'lucide-react'
+import { Logo } from '@/components/Logo'
 
 /**
  * Part D of the user agreement. Each box is a separate, recorded acceptance — the server stores
@@ -147,9 +147,9 @@ export function RegisterPage() {
     <Card className="w-full max-w-2xl">
       <CardHeader className="text-center">
         <div className="flex justify-center mb-2">
-          <Shield className="h-10 w-10 text-blue-600" />
+          <Logo size="xl" variant="dp" />
         </div>
-        <CardTitle className="text-2xl">Create your account</CardTitle>
+        <CardTitle className="font-display text-2xl">Create your account</CardTitle>
         <CardDescription>Join the community keeping riders safe</CardDescription>
       </CardHeader>
       <CardContent>
@@ -157,17 +157,17 @@ export function RegisterPage() {
           <div className="space-y-1">
             <Label htmlFor="fullName">Full Name</Label>
             <Input id="fullName" placeholder="Jane Doe" {...register('fullName')} />
-            {errors.fullName && <p className="text-xs text-red-500">{errors.fullName.message}</p>}
+            {errors.fullName && <p className="text-xs text-highrisk">{errors.fullName.message}</p>}
           </div>
 
           <div className="space-y-1">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" placeholder="you@example.com" {...register('email')} />
-            {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+            {errors.email && <p className="text-xs text-highrisk">{errors.email.message}</p>}
             {emailTaken && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Already have an account?{' '}
-                <Link to="/login" className="text-blue-600 hover:underline">
+                <Link to="/login" className="text-primary hover:underline">
                   Sign in instead
                 </Link>
               </p>
@@ -177,11 +177,11 @@ export function RegisterPage() {
           <div className="space-y-1">
             <Label htmlFor="dateOfBirth">Date of birth</Label>
             <Input id="dateOfBirth" type="date" {...register('dateOfBirth')} />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               RydrSafe is for adults only. Reports here concern allegations of criminal conduct.
             </p>
             {errors.dateOfBirth && (
-              <p className="text-xs text-red-500">{errors.dateOfBirth.message}</p>
+              <p className="text-xs text-highrisk">{errors.dateOfBirth.message}</p>
             )}
           </div>
 
@@ -189,7 +189,7 @@ export function RegisterPage() {
             <div className="space-y-1">
               <Label htmlFor="password">Password</Label>
               <PasswordInput id="password" placeholder="••••••••" {...register('password')} />
-              {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+              {errors.password && <p className="text-xs text-highrisk">{errors.password.message}</p>}
             </div>
             <div className="space-y-1">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
@@ -198,16 +198,16 @@ export function RegisterPage() {
                 {...register('confirmPassword')}
               />
               {errors.confirmPassword && (
-                <p className="text-xs text-red-500">{errors.confirmPassword.message}</p>
+                <p className="text-xs text-highrisk">{errors.confirmPassword.message}</p>
               )}
             </div>
           </div>
 
-          <div className="space-y-3 rounded-md border border-gray-200 p-4">
-            <p className="text-sm font-medium text-gray-900">Before you continue</p>
-            <p className="text-xs text-gray-500">
+          <div className="space-y-3 rounded-md border border-border p-4">
+            <p className="text-sm font-medium text-foreground">Before you continue</p>
+            <p className="text-xs text-muted-foreground">
               Read the{' '}
-              <Link to="/legal/user-agreement" className="text-blue-600 hover:underline">
+              <Link to="/legal/user-agreement" className="text-primary hover:underline">
                 RydrSafe User Agreement
               </Link>
               . Each item below is recorded separately against your account.
@@ -216,13 +216,15 @@ export function RegisterPage() {
             {CONSENTS.map((consent) => (
               <div
                 key={consent.key}
+                // Clause 15 is called out visually because a liability limitation has to be
+                // conspicuous to be enforceable — it cannot read like the other boxes.
                 className={
                   consent.conspicuous
-                    ? 'rounded border-2 border-amber-400 bg-amber-50 p-3'
+                    ? 'rounded border-2 border-review bg-review/10 p-3'
                     : undefined
                 }
               >
-                <label className="flex items-start gap-2 text-sm text-gray-700">
+                <label className="flex items-start gap-2 text-sm text-foreground">
                   <input
                     type="checkbox"
                     className="mt-1 h-4 w-4 shrink-0"
@@ -231,21 +233,23 @@ export function RegisterPage() {
                   <span>{consent.label}</span>
                 </label>
                 {fieldError(consent.key) && (
-                  <p className="ml-6 text-xs text-red-500">{fieldError(consent.key)}</p>
+                  <p className="ml-6 text-xs text-highrisk">{fieldError(consent.key)}</p>
                 )}
               </div>
             ))}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating account…' : 'Create account'}
+          <Button type="submit" className="w-full" isLoading={isSubmitting}>
+            Create account
           </Button>
         </form>
       </CardContent>
       <CardFooter className="justify-center">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:underline font-medium">Sign in</Link>
+          <Link to="/login" className="text-teal-600 hover:underline font-medium">
+            Sign in
+          </Link>
         </p>
       </CardFooter>
     </Card>

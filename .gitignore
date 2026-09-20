@@ -1,0 +1,22 @@
+# Root-level ignores. Build output and per-stack junk are handled by
+# backend/.gitignore and frontend/.gitignore — keep those concerns there
+# and only add things here that live at, or span, the repo root.
+
+# Generated video output from the /brag skill. Tens of MB of .mp4 per run,
+# and git history is permanent: committing these once makes every future
+# clone carry them forever, even after they're deleted.
+brag-output/
+brag-output-why-login/
+
+# Runtime evidence uploads. In production this folder fills with passenger-
+# submitted photos about identifiable drivers — user data, not source.
+backend/RydrSafe.API/wwwroot/evidence/
+
+# Stray root lockfile created by an accidental `npm install` at the repo root.
+# It's an empty stub; the real one is frontend/package-lock.json. Anchored
+# with a leading slash so the frontend's lockfile stays tracked.
+/package-lock.json
+
+# OS clutter
+.DS_Store
+Thumbs.db

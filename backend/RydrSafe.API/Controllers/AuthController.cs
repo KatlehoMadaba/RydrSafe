@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using RydrSafe.Application.Common.Interfaces;
 using RydrSafe.Application.DTOs;
+using RydrSafe.Application.Features.Account.Commands;
 using RydrSafe.Application.Features.Auth.Commands;
 using RydrSafe.Application.Features.Auth.Queries;
 using RydrSafe.Domain.Entities;
@@ -107,6 +108,78 @@ public class AuthController(IMediator mediator, IConsentRepository consentReposi
 
         await consentRepository.WithdrawAsync(Guid.Parse(userId), consentKey);
         return NoContent();
+    }
+
+    /// <summary>Clause 4 / POPIA s24 — the account holder correcting their own details.</summary>
+    [Authorize]
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateMe([FromBody] UpdateProfileRequest request)
+    {
+        var userId = CurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await mediator.Send(new UpdateProfileCommand(
+            userId.Value, request.FullName, request.Email));
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Changing a password signs every other session out, so it hands back a new token pair —
+    /// otherwise the user would be signed out by their own password change.
+    /// </summary>
+    [Authorize]
+    [HttpPut("me/password")]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userId = CurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await mediator.Send(new ChangePasswordCommand(
+            userId.Value, request.CurrentPassword, request.NewPassword));
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Clause 29 / POPIA s24. Immediate and irreversible. Reports the account submitted are kept
+    /// but unlinked (clause 29.2), and the email address is released, so the same person can
+    /// sign up again afterwards with a clean account.
+    /// </summary>
+    [Authorize]
+    [HttpDelete("me")]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> DeleteMe([FromBody] DeleteAccountRequest request)
+    {
+        var userId = CurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await mediator.Send(new DeleteAccountCommand(
+            userId.Value, request.Password, request.Reason));
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Revokes the stored refresh token. The client clears its own storage either way; this is
+    /// what stops a stolen refresh token outliving the sign-out.
+    /// </summary>
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        var userId = CurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        await mediator.Send(new LogoutCommand(userId.Value));
+        return NoContent();
+    }
+
+    private Guid? CurrentUserId()
+    {
+        var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(claim, out var id) ? id : null;
     }
 
     private string? ClientIp()
