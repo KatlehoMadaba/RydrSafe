@@ -23,9 +23,22 @@ public class CategoryAGate(IConfiguration config) : ICategoryAGate
     public bool IsPublicationEnabled =>
         IsProcessingEnabled && config.GetValue("CategoryA:PublicationEnabled", false);
 
-    public string DisabledReason =>
-        config["CategoryA:DisabledReason"]
-        ?? "RydrSafe is not currently accepting reports that allege criminal conduct. "
+    /// <summary>
+    /// Falls back on blank as well as null: an empty string in configuration is how this
+    /// setting looks when someone copies the sample file and leaves the value alone, and
+    /// returning "" would show the user an explanation-shaped hole.
+    /// </summary>
+    public string DisabledReason
+    {
+        get
+        {
+            var configured = config["CategoryA:DisabledReason"];
+            return string.IsNullOrWhiteSpace(configured) ? DefaultDisabledReason : configured;
+        }
+    }
+
+    private const string DefaultDisabledReason =
+        "RydrSafe is not currently accepting reports that allege criminal conduct. "
            + "We have applied to the Information Regulator for prior authorisation under POPIA "
            + "section 57(1)(b), and section 58(2) prevents us from processing these reports until "
            + "that application is decided. Reports about vehicle safety and conduct are unaffected. "

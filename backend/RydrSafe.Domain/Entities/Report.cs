@@ -6,7 +6,31 @@ public class Report
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid DriverId { get; set; }
-    public Guid UserId { get; set; }
+
+    /// <summary>
+    /// The account that submitted this report. Nullable because clause 29.2 keeps the report
+    /// when its reporter closes their account — the row is de-identified rather than deleted,
+    /// since it concerns a driver who may still be disputing it.
+    /// </summary>
+    public Guid? UserId { get; set; }
+
+    /// <summary>
+    /// Clause 6.4. The reporter asked not to be named. Other users never see reporter identity
+    /// in any case; this withholds the name from the moderation queue's face as well, and is
+    /// recorded so we can show the request was honoured. The account link is kept regardless —
+    /// clause 6.3(a) independence and clause 37 abuse handling both depend on it.
+    /// </summary>
+    public bool IsAnonymous { get; set; }
+
+    /// <summary>
+    /// Salted SHA-256 of the reporter's account id, written at submission. It exists so the
+    /// clause 6.3(a) independence test still works after <see cref="UserId"/> is cleared: two
+    /// de-identified reports from the same closed account must not corroborate each other.
+    /// </summary>
+    public string? ReporterKeyHash { get; set; }
+
+    /// <summary>Set when <see cref="UserId"/> was cleared because the account was deleted (clause 29.2).</summary>
+    public DateTime? ReporterDeletedAt { get; set; }
     public ReportCategory Category { get; set; }
     public ReportSeverity Severity { get; set; }
 
@@ -77,7 +101,9 @@ public class Report
     public string? SubmissionDeviceHash { get; set; }
 
     public Driver Driver { get; set; } = null!;
-    public User User { get; set; } = null!;
+
+    /// <summary>Null once the reporter's account has been deleted. See <see cref="UserId"/>.</summary>
+    public User? User { get; set; }
     public ICollection<ReportStatusAudit> StatusAudits { get; set; } = [];
 
     /// <summary>True where this report still stands — i.e. not rejected and not withdrawn.</summary>

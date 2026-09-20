@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "node scripts/sync-legal.mjs && tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync-legal": "node scripts/sync-legal.mjs",
+    "build:draft": "node -e \"process.env.ALLOW_DRAFT_LEGAL='true';require('child_process').execSync('npm run build',{stdio:'inherit',env:process.env})\""
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

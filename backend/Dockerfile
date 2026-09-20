@@ -18,17 +18,11 @@ RUN dotnet publish RydrSafe.API/RydrSafe.API.csproj -c Release -o /app/publish -
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
-# Install Tesseract OCR native libraries and English language data
-RUN apt-get update && apt-get install -y \
-    tesseract-ocr \
-    tesseract-ocr-eng \
-    libtesseract-dev \
-    && rm -rf /var/lib/apt/lists/*
+# OCR runs on the Google Cloud Vision API, not locally. The Tesseract native libraries that
+# used to be installed here were never loaded by any code path — no package referenced them —
+# so they only added image size and a misleading signal about where screenshots are processed.
 
 COPY --from=build /app/publish .
-
-# Point to system tessdata installed by apt
-ENV Tesseract__DataPath=/usr/share/tesseract-ocr/5/tessdata
 
 EXPOSE 5000
 
