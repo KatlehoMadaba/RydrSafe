@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { Shield, LayoutDashboard, FileText, Car, Bell, LogOut } from 'lucide-react'
+import { Shield, LayoutDashboard, FileText, Car, Bell, Gavel, LogOut } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -8,6 +8,7 @@ const nav = [
   { to: '/moderator/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/moderator/reports', icon: FileText, label: 'Reports' },
   { to: '/moderator/drivers', icon: Car, label: 'Drivers' },
+  { to: '/moderator/appeals', icon: Gavel, label: 'Appeals' },
   { to: '/moderator/notifications', icon: Bell, label: 'Notifications' },
 ]
 

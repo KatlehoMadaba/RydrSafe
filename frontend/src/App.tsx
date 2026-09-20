@@ -13,6 +13,7 @@ import { AdminLayout } from '@/layouts/AdminLayout'
 import { LoginPage } from '@/pages/public/LoginPage'
 import { RegisterPage } from '@/pages/public/RegisterPage'
 import { UnauthorizedPage } from '@/pages/public/UnauthorizedPage'
+import { DriverRightsPage } from '@/pages/public/DriverRightsPage'
 
 import { PassengerDashboardPage } from '@/pages/passenger/DashboardPage'
 import { VerifyDriverPage } from '@/pages/passenger/VerifyDriverPage'
@@ -24,6 +25,7 @@ import { ModeratorDashboardPage } from '@/pages/moderator/ModeratorDashboardPage
 import { ModeratorReportsPage } from '@/pages/moderator/ReportsPage'
 import { ModeratorDriversPage } from '@/pages/moderator/DriversPage'
 import { ModeratorNotificationsPage } from '@/pages/moderator/NotificationsPage'
+import { ModeratorAppealsPage } from '@/pages/moderator/AppealsPage'
 
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage'
 import { AdminUsersPage } from '@/pages/admin/UsersPage'
@@ -56,6 +58,8 @@ export default function App() {
               <Route path="/verify" element={<VerifyDriverPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              {/* Part C. Drivers are not users, so this is deliberately public. */}
+              <Route path="/driver-rights" element={<DriverRightsPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
             </Route>
 
@@ -77,6 +81,7 @@ export default function App() {
                 <Route path="/moderator/reports" element={<ModeratorReportsPage />} />
                 <Route path="/moderator/drivers" element={<ModeratorDriversPage />} />
                 <Route path="/moderator/notifications" element={<ModeratorNotificationsPage />} />
+                <Route path="/moderator/appeals" element={<ModeratorAppealsPage />} />
               </Route>
             </Route>
 

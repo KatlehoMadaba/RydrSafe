@@ -4,6 +4,7 @@ using RydrSafe.Application.DTOs;
 
 namespace RydrSafe.Application.Features.Reports.Queries;
 
+/// <summary>Moderation queue. Moderators and administrators only — carries descriptions.</summary>
 public record GetReportsQuery(int Page = 1, int PageSize = 20) : IRequest<PagedResult<ReportDto>>;
 
 public class GetReportsQueryHandler(
@@ -13,12 +14,25 @@ public class GetReportsQueryHandler(
     {
         var reports = await reportRepository.GetAllAsync(request.Page, request.PageSize);
 
-        var dtos = reports.Select(r => new ReportDto(
-            r.Id, r.DriverId, r.Driver?.DriverName ?? string.Empty,
-            r.UserId, r.User?.FullName ?? string.Empty,
-            r.Category.ToString(), r.Severity.ToString(),
-            r.Description, r.IncidentDate, r.ReportedToPolice, r.Status.ToString(), r.CreatedAt));
+        // Previously this reported the page size as the total, so the moderator UI could never
+        // page past the first screen.
+        var total = await reportRepository.CountAllAsync();
 
-        return new PagedResult<ReportDto>(dtos, dtos.Count(), request.Page, request.PageSize);
+        var dtos = reports.Select(GetReportByIdQueryHandler.Map).ToList();
+
+        return new PagedResult<ReportDto>(dtos, total, request.Page, request.PageSize);
+    }
+}
+
+/// <summary>A reporter's own submissions. Safe to return in full — they wrote them.</summary>
+public record GetMyReportsQuery(Guid UserId) : IRequest<IEnumerable<ReportDto>>;
+
+public class GetMyReportsQueryHandler(
+    IReportRepository reportRepository) : IRequestHandler<GetMyReportsQuery, IEnumerable<ReportDto>>
+{
+    public async Task<IEnumerable<ReportDto>> Handle(GetMyReportsQuery request, CancellationToken cancellationToken)
+    {
+        var reports = await reportRepository.GetByUserIdAsync(request.UserId);
+        return reports.Select(GetReportByIdQueryHandler.Map).ToList();
     }
 }

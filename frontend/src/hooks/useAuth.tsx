@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { User, UserRole } from '@/types'
 import { authApi } from '@/api/auth'
+import type { RegisterRequest } from '@/api/auth'
 
 interface AuthContextValue {
   user: User | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
-  register: (fullName: string, email: string, password: string) => Promise<void>
+  register: (data: RegisterRequest) => Promise<void>
   logout: () => void
 }
 
@@ -68,8 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(me)
   }
 
-  const register = async (fullName: string, email: string, password: string) => {
-    const data = await authApi.register({ fullName, email, password })
+  const register = async (request: RegisterRequest) => {
+    const data = await authApi.register(request)
     const me = buildUser(data)
     localStorage.setItem('token', data.accessToken)
     localStorage.setItem('refreshToken', data.refreshToken)

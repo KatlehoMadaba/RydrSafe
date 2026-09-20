@@ -2,7 +2,33 @@ import { apiClient } from './client'
 import type { User } from '@/types'
 
 export interface LoginRequest { email: string; password: string }
-export interface RegisterRequest { fullName: string; email: string; password: string }
+
+/** Part D. One entry per checkbox; the server stores each one against the account. */
+export interface ConsentAcceptance {
+  consentKey: string
+  accepted: boolean
+}
+
+export interface RegisterRequest {
+  fullName: string
+  email: string
+  password: string
+  /** Clause 3.1 — the 18+ rule is applied to this, not to a tick alone. */
+  dateOfBirth: string
+  consents: ConsentAcceptance[]
+  agreementVersion: string
+  locale?: string
+}
+
+export interface ConsentRecord {
+  consentKey: string
+  agreementVersion: string
+  locale: string
+  collectionSurface: string
+  accepted: boolean
+  acceptedAt: string
+  withdrawnAt: string | null
+}
 export interface AuthResponse {
   accessToken: string
   refreshToken: string
@@ -19,4 +45,6 @@ export const authApi = {
   refreshToken: (refreshToken: string) =>
     apiClient.post<AuthResponse>('/api/auth/refresh-token', { refreshToken }).then((r) => r.data),
   me: () => apiClient.get<User>('/api/auth/me').then((r) => r.data),
+  myConsents: () =>
+    apiClient.get<ConsentRecord[]>('/api/auth/me/consents').then((r) => r.data),
 }

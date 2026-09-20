@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RydrSafe.Application.DTOs;
 using RydrSafe.Application.Features.Verification.Commands;
 using RydrSafe.Application.Features.Verification.Queries;
@@ -13,10 +14,18 @@ namespace RydrSafe.API.Controllers;
 public class VerificationController(IMediator mediator) : ControllerBase
 {
     private static readonly string[] AllowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
-    private const long MaxFileSize = 10 * 1024 * 1024; // 10MB
+
+    /// <summary>
+    /// Reduced from 10MB. Three images at the old limit meant roughly 80MB of managed memory
+    /// held per request once base64 encoding is counted, which a small container cannot survive
+    /// under any concurrency. A phone screenshot is well under this.
+    /// </summary>
+    private const long MaxFileSize = 2 * 1024 * 1024;
 
     [HttpPost("upload")]
     [AllowAnonymous]
+    [EnableRateLimiting("verification")]
+    [RequestSizeLimit(8 * 1024 * 1024)]
     public async Task<IActionResult> Upload(
         IFormFile image1,
         IFormFile? image2 = null,
@@ -39,6 +48,7 @@ public class VerificationController(IMediator mediator) : ControllerBase
 
     [HttpPost("manual")]
     [AllowAnonymous]
+    [EnableRateLimiting("verification")]
     public async Task<IActionResult> Manual([FromBody] ManualVerificationRequest body)
     {
         var userId = GetUserIdOrNull();
@@ -72,7 +82,8 @@ public class VerificationController(IMediator mediator) : ControllerBase
     private void ValidateFile(IFormFile file)
     {
         if (file.Length > MaxFileSize)
-            throw new InvalidOperationException($"File {file.FileName} exceeds the 10MB limit.");
+            throw new InvalidOperationException(
+                $"File {file.FileName} exceeds the {MaxFileSize / (1024 * 1024)}MB limit.");
 
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!AllowedExtensions.Contains(ext))

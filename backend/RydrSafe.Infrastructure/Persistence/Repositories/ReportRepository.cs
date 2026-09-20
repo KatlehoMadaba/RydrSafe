@@ -16,23 +16,39 @@ public class ReportRepository(AppDbContext db) : IReportRepository
             .Skip((page - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
+    public async Task<int> CountAllAsync() => await db.Reports.CountAsync();
+
     public async Task<IEnumerable<Report>> GetByDriverIdAsync(Guid driverId) =>
         await db.Reports.Include(r => r.User).Where(r => r.DriverId == driverId).ToListAsync();
 
     public async Task<IEnumerable<Report>> GetByUserIdAsync(Guid userId) =>
         await db.Reports.Include(r => r.Driver).Where(r => r.UserId == userId).ToListAsync();
 
+    public async Task<IEnumerable<Report>> GetLiveByDriverIdAsync(Guid driverId) =>
+        await db.Reports
+            .Where(r => r.DriverId == driverId
+                        && r.Status != ReportStatus.Rejected
+                        && r.Status != ReportStatus.Withdrawn)
+            .ToListAsync();
+
     public async Task<int> CountByDriverIdAsync(Guid driverId) =>
         await db.Reports.CountAsync(r => r.DriverId == driverId);
 
-    // Counts only reports that still stand (excludes moderator-rejected ones),
-    // matching how risk scoring and the police check treat rejected reports.
-    public async Task<int> CountActiveByDriverIdAsync(Guid driverId) =>
-        await db.Reports.CountAsync(r => r.DriverId == driverId && r.Status != ReportStatus.Rejected);
+    /// <summary>
+    /// Clause 6.2 — only corroborated reports bear on a driver's public standing. Pending and
+    /// approved reports are held privately and deliberately count for nothing here.
+    /// </summary>
+    public async Task<int> CountCorroboratedByDriverIdAsync(Guid driverId) =>
+        await db.Reports.CountAsync(r => r.DriverId == driverId && r.Status == ReportStatus.Corroborated);
 
-    public async Task<bool> HasPoliceReportAsync(Guid driverId) =>
+    public async Task<bool> HasCorroboratedPoliceReportAsync(Guid driverId) =>
         await db.Reports.AnyAsync(r =>
-            r.DriverId == driverId && r.ReportedToPolice && r.Status != ReportStatus.Rejected);
+            r.DriverId == driverId && r.ReportedToPolice && r.Status == ReportStatus.Corroborated);
+
+    public async Task<IEnumerable<Report>> GetCorroboratedByDriverIdAsync(Guid driverId) =>
+        await db.Reports
+            .Where(r => r.DriverId == driverId && r.Status == ReportStatus.Corroborated)
+            .ToListAsync();
 
     public async Task AddAsync(Report report)
     {
@@ -43,6 +59,19 @@ public class ReportRepository(AppDbContext db) : IReportRepository
     public async Task UpdateAsync(Report report)
     {
         db.Reports.Update(report);
+        await db.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<Report>> GetExpiredAsync(DateTime cutoff, int batchSize) =>
+        await db.Reports
+            .Where(r => r.CreatedAt < cutoff)
+            .OrderBy(r => r.CreatedAt)
+            .Take(batchSize)
+            .ToListAsync();
+
+    public async Task DeleteRangeAsync(IEnumerable<Report> reports)
+    {
+        db.Reports.RemoveRange(reports);
         await db.SaveChangesAsync();
     }
 }

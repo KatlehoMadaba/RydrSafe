@@ -3,15 +3,17 @@ import { useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { reportsApi } from '@/api/reports'
+import { platformApi } from '@/api/platform'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { AlertTriangle } from 'lucide-react'
 
 const schema = z.object({
   driverName: z.string().min(2, 'Driver name is required'),
@@ -21,6 +23,8 @@ const schema = z.object({
   description: z.string().min(20, 'Please provide at least 20 characters of detail'),
   incidentDate: z.string().min(1, 'Incident date is required'),
   reportedToPolice: z.boolean(),
+  // Clause 6.3(b). Optional, but supplying one is the fastest route to corroboration.
+  officialReference: z.string().max(100).optional(),
 })
 type FormData = z.infer<typeof schema>
 
@@ -45,6 +49,19 @@ const severities: { value: FormData['severity']; label: string; color: string }[
 export function ReportDriverPage() {
   const location = useLocation()
   const prefill = location.state as { driverName?: string; registrationNumber?: string } | null
+
+  // Which categories the platform is currently accepting. While the POPIA s58(2) standstill is
+  // in force, Category A categories are shown but disabled, with the reason — hiding them would
+  // leave a user wondering where "Assault" went.
+  const { data: config } = useQuery({
+    queryKey: ['platform-config'],
+    queryFn: platformApi.getConfig,
+    staleTime: 5 * 60_000,
+  })
+
+  const unavailable = new Set(
+    (config?.reportCategories ?? []).filter((c) => !c.available).map((c) => c.value),
+  )
 
   const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -72,9 +89,16 @@ export function ReportDriverPage() {
       <Card>
         <CardHeader>
           <CardTitle>Incident Details</CardTitle>
-          <CardDescription>All reports are reviewed by our moderation team before being published.</CardDescription>
+          <CardDescription>Reports are reviewed by a moderator. A serious allegation is not shown to other users unless it is independently corroborated (clause 6.3).</CardDescription>
         </CardHeader>
         <CardContent>
+          {config && !config.categoryAProcessingEnabled && (
+            <div className="mb-5 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+              <p className="text-xs text-amber-900">{config.categoryADisabledReason}</p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -95,7 +119,11 @@ export function ReportDriverPage() {
                 <Select onValueChange={(v) => setValue('category', v as FormData['category'])}>
                   <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
                   <SelectContent>
-                    {categories.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                    {categories.map((c) => (
+                      <SelectItem key={c.value} value={c.value} disabled={unavailable.has(c.value)}>
+                        {c.label}{unavailable.has(c.value) ? ' — not currently accepted' : ''}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {errors.category && <p className="text-xs text-red-500">{errors.category.message}</p>}
@@ -126,6 +154,19 @@ export function ReportDriverPage() {
               <Label>Description</Label>
               <Textarea rows={5} placeholder="Describe what happened in detail…" {...register('description')} />
               {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
+            </div>
+
+            <div className="space-y-1">
+              <Label>SAPS case number (optional)</Label>
+              <Input placeholder="e.g. CAS 123/01/2026" {...register('officialReference')} />
+              <p className="text-xs text-gray-500">
+                If you opened a case, the reference lets a moderator corroborate your report on its
+                own. Without one, a serious allegation stays private until a second, independent
+                report names the same driver.
+              </p>
+              {errors.officialReference && (
+                <p className="text-xs text-red-500">{errors.officialReference.message}</p>
+              )}
             </div>
 
             <div className="flex items-start gap-2 rounded-md bg-gray-50 dark:bg-gray-800 p-3">

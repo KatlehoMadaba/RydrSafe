@@ -2,13 +2,19 @@
 
 **Terms of Use · POPIA Privacy Notice · Community Reporting Rules · Driver Rights**
 
+> **⛔ DRAFT — NOT FOR PUBLICATION.** Every `TBD:` token below must carry a real value, and the
+> outstanding items in [COMPLIANCE-NOTES.md](COMPLIANCE-NOTES.md) §1 must be closed, before this
+> is shown to a user or handed to an attorney as a finished document. Search for `TBD:` — that
+> token appears nowhere else, so a clean search means the metadata is complete.
+
 | | |
 |---|---|
 | **Version** | 1.0 |
-| **Effective date** | `[EFFECTIVE DATE]` |
-| **Responsible party** | `[REGISTERED COMPANY NAME]` (Reg. No. `[CIPC NUMBER]`), trading as RydrSafe |
-| **Registered address** | `[PHYSICAL ADDRESS]` |
-| **Information Officer** | `[FULL NAME]` — `[EMAIL]` |
+| **Effective date** | `TBD: EFFECTIVE_DATE` |
+| **Responsible party** | `TBD: REGISTERED_COMPANY_NAME` (Reg. No. `TBD: CIPC_NUMBER`), trading as RydrSafe |
+| **Legal status** | `TBD: LEGAL_FORM` — private company, sole proprietor, or unincorporated project |
+| **Registered address** | `TBD: PHYSICAL_ADDRESS` |
+| **Information Officer** | `TBD: IO_FULL_NAME` — `TBD: IO_EMAIL` |
 | **Governing law** | Republic of South Africa |
 
 > **This is one agreement made up of four parts.** Part A is the contract between you and us. Part B is our POPIA privacy notice. Part C sets out the rights of drivers who appear on RydrSafe. Part D is what you tick when you sign up. You must accept Parts A–C to create an account.
@@ -35,7 +41,7 @@ This summary is not the agreement — it is here so you know what you are agreei
 
 ## 1. Acceptance, and who this covers
 
-1.1 This agreement is between you and `[REGISTERED COMPANY NAME]` ("RydrSafe", "we", "us"). By ticking the boxes in Part D and creating an account, you enter into a binding agreement with us.
+1.1 This agreement is between you and `TBD: REGISTERED_COMPANY_NAME` ("RydrSafe", "we", "us"). By ticking the boxes in Part D and creating an account, you enter into a binding agreement with us.
 
 1.2 If you do not accept this agreement, do not create an account and do not use the service.
 
@@ -112,7 +118,7 @@ Every report moves through these stages. **No report is visible to other users w
 
 A **Category A** report becomes visible to other users only when at least one of the following is true:
 
-(a) **two or more independent approved reports** in the same or a related category name the same driver, submitted by accounts that are not linked to each other by device, network, payment identity or referral; or
+(a) **two or more independent approved reports** in the same or a related category name the same driver, submitted by accounts that are not linked to each other. We test that linkage using only two signals — a one-way hash of the submitting IP address and a one-way hash of a device identifier — both of which are described in Part B, clause 20.1. We do not use payment or referral data for this, because we do not collect any; or
 
 (b) the reporter has supplied a **SAPS case number (CAS/AR)** or other official reference for the incident, and a moderator has confirmed the reference is well-formed and consistent with the report; or
 
@@ -193,7 +199,7 @@ You may not:
 
 10.2 We recognise that a screenshot of an e-hailing app reproduces interface elements, logos and layout in which the operator holds rights. We limit our use to what is reasonably necessary to read the driver and vehicle details: the image is processed and deleted, we do not build an image archive, we do not reproduce operator branding in our own interface, and we do not use those marks in a way that suggests endorsement or affiliation.
 
-10.3 If an operator or rights holder believes our handling of their material or marks is unlawful, they should contact `[LEGAL EMAIL]` and we will engage on it promptly.
+10.3 If an operator or rights holder believes our handling of their material or marks is unlawful, they should contact `TBD: LEGAL_EMAIL` and we will engage on it promptly.
 
 10.4 Do not upload material belonging to a third party that you have no right to upload.
 
@@ -207,7 +213,7 @@ You may not:
 
 ## 12. Complaints, take-downs, and our position as an intermediary
 
-12.1 **Complaints about content.** Any person — a driver, an operator, a reporter, or a member of the public — may ask us to remove or correct content. Send the request to `[TAKEDOWN EMAIL]`, addressed to the designated agent, and include:
+12.1 **Complaints about content.** Any person — a driver, an operator, a reporter, or a member of the public — may ask us to remove or correct content. Send the request to `TBD: TAKEDOWN_EMAIL`, addressed to the designated agent, and include:
 
 - your full names and address, and your signature (electronic is fine);
 - the right that has allegedly been infringed, or the harm alleged;
@@ -219,7 +225,11 @@ You may not:
 
 12.2 We acknowledge complaints within **2 business days** and decide within **10 business days**, faster where there is a risk of harm. We may remove or suspend the visibility of content while we investigate. Removing content pending investigation is not an admission that the complaint is correct.
 
-12.3 **Our honest position on intermediary status.** Chapter XI of the Electronic Communications and Transactions Act 25 of 2002 limits the liability of service providers who host content passively. We do not host passively: we moderate, we approve and reject, we redact, and we compute a risk score. We therefore **do not rely on those limitations as our primary protection**, and we tell you this rather than imply otherwise. Our protection is meant to come from the safeguards in clause 6 — not publishing uncorroborated allegations, not publishing free text, giving a right of reply, and taking content down promptly when it is shown to be wrong. We reserve whatever statutory protection is in fact available to us, without prejudice.
+12.3 **Our honest position on intermediary status.** Chapter XI of the Electronic Communications and Transactions Act 25 of 2002 limits the liability of service providers who host third-party content. Section 75 makes that limitation conditional: it depends on whether we had actual knowledge that the content was unlawful, whether we acted expeditiously to remove it once notified, and on our having a designated agent to receive notices. Section 78 separately provides that we are under **no general obligation to monitor** the content we host.
+
+Moderating does not by itself defeat the section 75 limitation. What it does is change the facts that the section 75 conditions are assessed against — in particular, the more closely we review content, the harder it is for us to say we had no knowledge of it. We tell you this plainly rather than imply the protection is automatic.
+
+We therefore **do not rely on Chapter XI as our primary protection**. Our protection is meant to come from the safeguards in clause 6 — not publishing uncorroborated allegations, not publishing free text, giving a right of reply, and taking content down promptly when it is shown to be wrong. We reserve whatever statutory protection is in fact available to us, without prejudice.
 
 12.4 We accept no general obligation to monitor content we host or to actively seek out unlawful activity, beyond the moderation process described in this agreement.
 
@@ -245,7 +255,9 @@ You may not:
 
 > **⚠ PLEASE READ THIS CLAUSE CAREFULLY — IT LIMITS OUR LIABILITY AND ASKS YOU TO ACCEPT CERTAIN RISKS.**
 >
-> This notice is given in terms of section 49 of the Consumer Protection Act 68 of 2008. You are asked to acknowledge this clause separately at sign-up. If any part of it is unclear, email `[SUPPORT EMAIL]` before you accept.
+> This notice is given in terms of section 49 of the Consumer Protection Act 68 of 2008. You are asked to acknowledge this clause separately at sign-up. If any part of it is unclear, email `TBD: SUPPORT_EMAIL` before you accept.
+>
+> *Drafting note, to be removed before publication:* whether the CPA applies to RydrSafe at all depends on whether the service is supplied "in the ordinary course of business for consideration". A service offered free of charge may fall outside the definition of a transaction, in which case the section 49 framing and the section 51 carve-outs below change. This clause is drafted **as though the CPA applies**, which is the safe direction, but the scope needs counsel's confirmation before release. See [COMPLIANCE-NOTES.md](COMPLIANCE-NOTES.md) §4.
 
 15.1 **What we do not limit.** Nothing in this agreement excludes or limits our liability for:
 
@@ -281,19 +293,19 @@ You may not:
 
 17.2 We will not treat mere continued use as acceptance of a material change. Non-material changes (typographical fixes, clarifications, updated contact details) take effect on publication.
 
-17.3 Every version is archived and available at `[LEGAL URL]/versions`.
+17.3 Every version is archived and available at `TBD: LEGAL_URL/versions`.
 
 ## 18. Governing law and disputes
 
 18.1 South African law governs this agreement.
 
-18.2 Talk to us first: `[SUPPORT EMAIL]`. We aim to resolve complaints within 15 business days.
+18.2 Talk to us first: `TBD: SUPPORT_EMAIL`. We aim to resolve complaints within 15 business days.
 
 18.3 If we cannot resolve it, you may refer the matter to the **National Consumer Commission** or an accredited consumer ombud, or to the **Information Regulator** for anything about personal information. Nothing in this agreement removes those rights or your right to approach a court.
 
 18.4 The Magistrates' Courts have jurisdiction, without limiting your right to approach a higher court.
 
-18.5 This agreement is concluded electronically. Under the ECT Act, an electronic signature or the ticking of the boxes in Part D is as binding as a written signature.
+18.5 This agreement is concluded electronically, which the ECT Act permits. Where the law requires a signature and does not require an *advanced* electronic signature, section 13(3) of that Act treats an electronic method as a signature if the method identifies the person and indicates their approval, and is reliable and appropriate for the purpose — or if that intention is established by other evidence. Ticking the boxes in Part D is intended to meet that standard: each box is recorded against your authenticated account, with the version you saw, the time, and the originating IP address. Whether a court would accept this click-through method for any particular purpose is ultimately for the court.
 
 18.6 If a clause is found invalid, it is severed and the rest survives. Our failure to enforce a clause is not a waiver of it.
 
@@ -302,17 +314,17 @@ You may not:
 
 # PART B — PRIVACY NOTICE (POPIA)
 
-This Part is our notice under sections 18 and 51 of the Protection of Personal Information Act 4 of 2013.
+This Part is our notice to data subjects under **section 18** of the Protection of Personal Information Act 4 of 2013. Our manual under **section 51 of the Promotion of Access to Information Act 2 of 2000 (PAIA)** is a separate document, published at `TBD: LEGAL_URL`/paia. (Section 51 of POPIA concerns meetings of the Information Regulator and has nothing to do with this notice.)
 
 ## 19. Who is responsible
 
-**Responsible party:** `[REGISTERED COMPANY NAME]` (Reg. No. `[CIPC NUMBER]`), `[PHYSICAL ADDRESS]`.
+**Responsible party:** `TBD: REGISTERED_COMPANY_NAME` (Reg. No. `TBD: CIPC_NUMBER`), `TBD: PHYSICAL_ADDRESS`.
 
-**Information Officer:** `[FULL NAME]`, `[EMAIL]`, `[PHONE]`. Registered with the Information Regulator under registration reference `[REF]`.
+**Information Officer:** `TBD: IO_FULL_NAME`, `TBD: IO_EMAIL`, `TBD: IO_PHONE`. Registered with the Information Regulator under registration reference `TBD: IO_REGISTRATION_REF`.
 
-**Deputy Information Officer:** `[FULL NAME / "None appointed"]`.
+**Deputy Information Officer:** `TBD: DEPUTY_IO`.
 
-Our PAIA manual is available at `[LEGAL URL]/paia`.
+Our PAIA manual is available at `TBD: LEGAL_URL/paia`.
 
 ## 20. Personal information we process
 
@@ -324,8 +336,13 @@ Our PAIA manual is available at `[LEGAL URL]/paia`.
 | Reports you submit | Category, severity, description, incident date, driver and vehicle details you supply | You |
 | Verification activity | Extracted driver/vehicle text, match results, timestamps | Your uploads |
 | Technical | IP address, device and browser information, login history, audit log entries | Automatic |
+| Report independence signals | A one-way salted hash of the IP address and of a device identifier, stored against each report you submit | Automatic |
 | Support | Correspondence with us | You |
 | Consent record | Which agreement version and checkboxes you accepted, when, from which IP | Automatic |
+
+**On the independence signals.** When you submit a report we store a one-way salted hash of your IP address and of a device identifier alongside it. We use these for exactly one purpose: deciding, under clause 6.3(a), whether two reports naming the same driver came from genuinely separate people, or from one person using two accounts. The raw address and identifier are never written to the database, the hashes cannot be reversed to recover them, and they are not used for advertising, profiling, location inference or any other decision about you. They are retained for as long as the report is (clause 29), and only moderators investigating coordinated reporting can see that a match occurred — never the underlying values. Our ground for this is section 11(1)(f), the same legitimate interest in abuse prevention set out in clause 23.
+
+If a match causes your report not to corroborate another, that affects the report's visibility, not your account standing, and you may raise it with us. If a match contributes to a decision to suspend your account, clause 13.2 applies and you can respond before it takes effect.
 
 ### 20.2 About drivers
 
@@ -347,8 +364,8 @@ We do not ask for or knowingly store identity numbers, home addresses, banking d
 
 21.2 We give that notice by:
 
-(a) publishing this notice, and Part C, at `[LEGAL URL]` in a form that does not require an account to read;
-(b) operating a **driver self-check** at `[LEGAL URL]/drivers` where any driver can find out whether we hold information about them, and what;
+(a) publishing this notice, and Part C, at `TBD: LEGAL_URL` in a form that does not require an account to read;
+(b) operating a **driver self-check** at `TBD: LEGAL_URL`/driver-rights, where any driver can find out whether we hold information about them, and what, without needing an account;
 (c) notifying a driver directly, where we hold a usable contact detail, before their public status changes to *Flagged* or *High Risk* (Part A, clause 6.5).
 
 21.3 Where we do not notify a driver directly, it is because we have no usable contact detail, or because notifying them would put a reporter at risk of retaliation, or would prejudice a law-enforcement investigation. Those are the exceptions we rely on under section 18(4).
@@ -375,11 +392,15 @@ Section 11 of POPIA lists the grounds on which personal information may be proce
 | Your account data | s11(1)(b) — necessary to perform the contract with you | Without it there is no account |
 | Your technical and audit data | s11(1)(f) — our legitimate interest in security and abuse prevention | Balancing test on file |
 | Your consent record | s11(1)(c) — compliance with a legal obligation (POPIA itself) | |
-| Driver name, vehicle registration, make/model, phone | s11(1)(f) — legitimate interest | Balancing test on file; see 23.2 |
-| **Report content alleging criminal conduct** | See clause 24 — this is *special personal information* and section 11 alone is not enough | |
+| Driver name, vehicle registration, make/model, phone | s11(1)(f) — legitimate interest | **Pending**: rests on the Legitimate Interests Assessment described in 23.2, which is not yet complete |
+| **Report content alleging criminal conduct** | See clause 24 — this is *special personal information*, and section 11 alone is not enough | **Not currently processed.** Conditional on the section 57 authorisation in clause 24.3 |
 | Marketing communications | s11(1)(a) — your consent, freely given and withdrawable | Opt-in only |
 
-23.2 **On legitimate interest.** Section 11(1)(f) requires that the processing be necessary for pursuing our legitimate interests, and it requires the interests of the data subject to be weighed against ours. We have carried out and documented that assessment (a Legitimate Interests Assessment, reviewed at least annually and available to the Information Regulator on request). In summary: passengers have a real and serious interest in avoiding drivers who have harmed others; drivers have a real and serious interest in not being labelled dangerous on thin evidence; and the safeguards in Part A, clause 6 — no publication of uncorroborated criminal allegations, no publication of free text, human review, right of reply, and a working appeals process — are what bring the balance out in favour of processing. **If those safeguards are not operating, the basis fails.** They are not decorative.
+23.2 **On legitimate interest.** Section 11(1)(f) requires that the processing be necessary for pursuing our legitimate interests, and it requires the interests of the data subject to be weighed against ours. That weighing has to be done and recorded — a Legitimate Interests Assessment — and it has to be done *before* the processing it authorises, not asserted afterwards.
+
+> **Status: the Legitimate Interests Assessment is not yet complete.** Until it is, this clause states the basis we intend to rely on, not one we have established. We would rather say that than claim an assessment we have not done, which would be evidence against us rather than for us.
+
+The assessment we will record weighs the following. Passengers have a real and serious interest in avoiding drivers who have harmed others. Drivers have a real and serious interest in not being labelled dangerous on thin evidence, and the consequence for a driver who is wrongly labelled falls on their livelihood. The safeguards in Part A, clause 6 — no publication of uncorroborated criminal allegations, no publication of free text, human review, right of reply, and a working appeals process — are what we say brings the balance out in favour of processing. **If those safeguards are not operating, the basis fails.** They are not decorative. The assessment will be reviewed at least annually and made available to the Information Regulator on request.
 
 ## 24. Special personal information — allegations of criminal conduct
 
@@ -395,23 +416,39 @@ This clause states our position squarely, because it is the most legally sensiti
 
 (c) **Section 33**, where information was obtained in accordance with the law.
 
-24.3 **Prior authorisation from the Regulator.** Section 57(1)(d) of POPIA requires a responsible party to obtain **prior authorisation from the Information Regulator** before processing information on criminal behaviour, or on unlawful or objectionable conduct, **on behalf of third parties**. We take the view that this applies to RydrSafe.
+24.3 **Prior authorisation from the Regulator.** Section **57(1)(b)** of POPIA requires a responsible party to obtain **prior authorisation from the Information Regulator** before processing information on criminal behaviour, or on unlawful or objectionable conduct, **on behalf of third parties**. We take the view that this applies to RydrSafe: the allegations come from passengers, concern drivers, and are processed for the benefit of other passengers.
 
-> **Current status:** `[STATE ONE — "Prior authorisation applied for on [DATE], reference [REF]; Category A reports are retained but NOT published pending the Regulator's decision." / "Prior authorisation granted on [DATE], reference [REF]." / "Application in preparation; Category A publication is disabled."]`
+(Section 57(1)(d) concerns the transfer of special personal information to a third country and is a different obligation. An earlier draft of this clause cited it in error.)
+
+> **Current status:** `TBD: S57_STATUS` — state one of: *"Prior authorisation applied for on `TBD: DATE`, reference `TBD: REF`."* / *"Prior authorisation granted on `TBD: DATE`, reference `TBD: REF`."* / *"Application in preparation."*
 >
-> Where authorisation has not been granted, section 58(2) means we may not carry out this processing until the Regulator has completed its assessment. **Category A publication stays switched off until this is resolved.** Do not remove this notice until the status is settled.
+> Where authorisation has not been granted, **section 58(2)** means we may not carry out this processing until the Regulator has completed its assessment, or has notified us that a detailed assessment will not be conducted. Section **58(7)** limits how long that can take: if the Regulator does not decide within the prescribed period, the processing may proceed. We will not rely on 58(7) without counsel's confirmation that the period has in fact run.
 
-24.4 **The consequence for you as a user.** During any period in which Category A publication is disabled, you can still submit those reports and we will still retain and moderate them, but other users will not see them. We consider this the correct trade-off. A platform that publishes unproven criminal allegations because it is convenient is a platform that ruins innocent people's livelihoods.
+24.4 **The consequence for you as a user.** The section 58(2) standstill covers *processing*, not publication alone — submitting, storing, moderating, matching and scoring are all processing. So while it is in force, **we do not accept Category A reports at all.** The form will tell you the category is unavailable and why. We do not quietly take the report and hold it: taking it would itself be the thing we are not permitted to do.
+
+Reports in Category B — vehicle safety and conduct that alleges no offence — are unaffected and work normally throughout.
+
+We consider this the correct trade-off, and we are aware it makes the product less useful in the meantime. A platform that processes unproven criminal allegations because it is convenient is a platform that ruins innocent people's livelihoods. If you are reporting a crime, report it to SAPS on **10111**; we are not a substitute for that and never were.
 
 ## 25. Screenshots and OCR
 
-25.1 Uploaded images are processed in memory or in short-lived temporary storage, solely to extract text.
+25.1 Uploaded images are held **in memory only**, for the duration of the request that processes them, solely to extract text. They are never written to disk and never written to our database.
 
-25.2 Images are **deleted immediately after processing**, and in any event within **`[N]` hours**. We do not keep an image archive.
+25.2 The memory holding an image is cleared and released before the verification request returns — so "deleted immediately" here means within the seconds that request takes, not within a retention window. We record the moment it happened against your verification record, so the promise is evidenced rather than asserted. We do not keep an image archive, and there is no image for us to produce later, to anyone.
 
-25.3 We retain only the extracted text fields and a non-reversible hash of the image, which we use to detect the same screenshot being submitted repeatedly to manufacture corroboration. A hash cannot be turned back into a picture.
+25.3 What survives an upload is: the text fields we extracted (driver name, registration number, phone number, vehicle make and model where visible), and a SHA-256 hash of the image. We use the hash to detect the same screenshot being submitted repeatedly to manufacture corroboration. A hash cannot be turned back into a picture.
 
-25.4 The single exception: where an image is the subject of an active fraud investigation, a dispute, or a lawful request from a court or law-enforcement authority, we may retain that specific image for as long as strictly necessary, and we log why.
+25.4 **Where the extracted text goes.** Be aware that the extracted text is not confined to the verification response:
+
+(a) it is stored on your verification history record, so you can see what you checked and when;
+(b) where the extraction matches a driver we already hold, the match may update that driver's record;
+(c) the image is sent to our OCR operator (clause 27.3) to be read, and is subject to that operator's own retention, which we describe there.
+
+Each of these is covered by the retention periods in clause 29, after which the OCR-derived fields are stripped from the record.
+
+25.5 Alert notifications sent to users who follow a driver carry that driver's name and current public status band only. They do not carry text freshly extracted from your screenshot, the registration number you uploaded, or any phone number.
+
+25.6 The single exception to 25.1: where an upload is the subject of an active fraud investigation, a dispute, or a lawful request from a court or law-enforcement authority, we may retain the extracted data and hash for that specific upload for as long as strictly necessary, and we log why. This exception does not create a retained image — there is none.
 
 ## 26. Automated processing and the risk score
 
@@ -433,18 +470,35 @@ This clause states our position squarely, because it is the most legally sensiti
 - with a driver's professional or legal representative, where the driver is exercising their rights under Part C;
 - with our legal and insurance advisers, where necessary to defend a claim.
 
-27.3 **Operators (POPIA s21).** An "operator" is a third party that processes personal information on our behalf. Section 21(2) requires a **written contract** with each one, obliging them to maintain the security measures in section 19. We have such agreements in place with:
+27.3 **Operators (POPIA s21).** An "operator" is a third party that processes personal information on our behalf. Section **21(1)** requires a **written contract** with each one, obliging them to establish and maintain the security measures required by section 19. Section **21(2)** separately requires each operator to notify us **immediately** where there are reasonable grounds to believe personal information has been accessed or acquired by an unauthorised person.
 
-| Operator | Purpose | Processing location |
-|---|---|---|
-| Microsoft Azure (App Service, PostgreSQL, Storage) | Hosting, database, compute | `[REGION — e.g. South Africa North]` |
-| `[EMAIL PROVIDER]` | Transactional email | `[REGION]` |
-| `[ERROR / LOG PROVIDER]` | Error monitoring, logging | `[REGION]` |
-| `[ANY OTHER]` | `[PURPOSE]` | `[REGION]` |
+> **Status: none of the operator agreements below are confirmed as executed.** Until each row carries a real subprocessor, a real region and a located, signed s21(1) contract, this clause describes an intention, not an arrangement. See [COMPLIANCE-NOTES.md](COMPLIANCE-NOTES.md) §3.
 
-OCR is performed by Tesseract, which runs inside our own infrastructure. Screenshots are not sent to a third-party OCR service.
+| Operator | Purpose | Data reaching them | Processing region | s21(1) contract |
+|---|---|---|---|---|
+| **Google Cloud (Cloud Vision API)** | Optical character recognition on uploaded screenshots | The full screenshot image, including everything visible in it | `TBD: GOOGLE_VISION_REGION` | `TBD: GOOGLE_DPA_STATUS` |
+| **Render** | Application hosting and compute | All application data in transit; logs | `TBD: RENDER_REGION` | `TBD: RENDER_DPA_STATUS` |
+| **Supabase** (PostgreSQL) | Database, and database backups | All stored personal information | `TBD: SUPABASE_REGION` | `TBD: SUPABASE_DPA_STATUS` |
+| **Netlify** | Static hosting of the web front end | Request metadata and IP addresses | `TBD: NETLIFY_REGION` | `TBD: NETLIFY_DPA_STATUS` |
+| `TBD: EMAIL_PROVIDER` | Transactional email | Email address, message content | `TBD: REGION` | `TBD: DPA_STATUS` |
+| `TBD: ERROR_LOG_PROVIDER` | Error monitoring, logging | Whatever appears in an error, which may include identifiers | `TBD: REGION` | `TBD: DPA_STATUS` |
 
-27.4 **Cross-border transfers (POPIA s72).** We aim to process and store personal information in South Africa. Where an operator processes it outside South Africa, we transfer it only where the recipient is subject to a law, binding corporate rules, or a binding agreement that provides a level of protection substantially similar to POPIA. Current position: `[STATE — e.g. "All primary data resides in Azure South Africa North; backups replicate to [REGION] under Microsoft's Data Protection Addendum, which incorporates POPIA-equivalent terms."]`
+**On OCR specifically.** An earlier draft of this clause said OCR ran inside our own infrastructure on Tesseract and that screenshots were not sent to a third party. **That was wrong, and we have corrected it.** Screenshots are sent to Google Cloud Vision to be read. That makes Google an operator, and it makes every upload a cross-border transfer. We need to record, and have not yet recorded: Google's retention period for images submitted to the Vision API, whether those images are used for any purpose beyond returning the result, and which subprocessors Google in turn uses.
+
+27.4 **Cross-border transfers (POPIA s72).** Section 72 permits a transfer outside South Africa only where the recipient is subject to a law, binding corporate rules, or a binding agreement providing protection substantially similar to POPIA — or where one of the other section 72 grounds applies.
+
+> **Status: unresolved.** For each foreign operator we must record the recipient, the processing region, the onward subprocessors, the categories of data transferred, and the deletion behaviour on termination. None of that is documented yet, so section 72 should not be treated as satisfied.
+
+| Recipient | Categories transferred | Region | Onward subprocessors | Deletion on termination | s72 ground |
+|---|---|---|---|---|---|
+| Google Cloud Vision | Screenshot images | `TBD: REGION` | `TBD: SUBPROCESSORS` | `TBD: DELETION` | `TBD: GROUND` |
+| Render | Application data, logs | `TBD: REGION` | `TBD: SUBPROCESSORS` | `TBD: DELETION` | `TBD: GROUND` |
+| Supabase | All stored data, backups | `TBD: REGION` | `TBD: SUBPROCESSORS` | `TBD: DELETION` | `TBD: GROUND` |
+| Netlify | Request metadata, IPs | `TBD: REGION` | `TBD: SUBPROCESSORS` | `TBD: DELETION` | `TBD: GROUND` |
+| `TBD: EMAIL_PROVIDER` | Email address, content | `TBD: REGION` | `TBD: SUBPROCESSORS` | `TBD: DELETION` | `TBD: GROUND` |
+| `TBD: ERROR_LOG_PROVIDER` | Error payloads | `TBD: REGION` | `TBD: SUBPROCESSORS` | `TBD: DELETION` | `TBD: GROUND` |
+
+Backup replication regions count as transfers in their own right and must be listed above, not assumed to follow the primary region.
 
 27.5 If we ever propose a merger, sale or transfer of the business, we will notify users and drivers before personal information moves, and the acquirer will be bound by protections no weaker than these.
 
@@ -456,21 +510,29 @@ OCR is performed by Tesseract, which runs inside our own infrastructure. Screens
 
 ## 29. Retention
 
-| Data | Retained for |
-|---|---|
-| Uploaded images | Deleted immediately after OCR; hard limit `[N]` hours |
-| Account data | Until you close your account, then deleted or de-identified within **30 days** |
-| Verification history | **12 months**, then de-identified |
-| Pending reports not corroborated | **`[24]` months**, then deleted — retained this long only so a later independent report can corroborate them |
-| Rejected reports | **6 months** (to detect repeat malicious reporting), then deleted |
-| Corroborated reports | **`[36]` months** from the incident date, then deleted, unless the subject of an active dispute |
-| Moderation and audit logs | **`[36]` months** |
-| Consent records | Duration of the account plus **3 years** |
-| Records under legal hold | Until the matter is finally resolved |
+A stated retention period with nothing enforcing it is a misrepresentation, so the last column says plainly whether each row is enforced by a scheduled job today.
 
-29.1 Closing your account does not automatically delete reports you submitted, because those reports concern other people and may be the subject of a driver's dispute. We de-identify them: they stop being linked to you and become an anonymous historical record, unless we are required to preserve the link.
+| Data | Retained for | Enforced? |
+|---|---|---|
+| Uploaded images | Never stored; released from memory within the request (clause 25.2) | ✅ By construction |
+| OCR-derived fields on verification history | **12 months**, then stripped from the record | ✅ Scheduled purge |
+| IP addresses stored with a consent record | **24 months**, then cleared | ✅ Scheduled purge |
+| Driver-record access logs | **90 days**, then deleted | ✅ Scheduled purge |
+| Account data | Until you close your account, then deleted or de-identified within **30 days** | ⚠️ Not yet automated — on request |
+| Pending reports not corroborated | **24 months**, then deleted — retained this long only so a later independent report can corroborate them | ⚠️ Not yet automated |
+| Rejected reports | **6 months** (to detect repeat malicious reporting), then deleted | ⚠️ Not yet automated |
+| Corroborated reports | **36 months** from the incident date, then deleted, unless the subject of an active dispute | ⚠️ Not yet automated |
+| Moderation and audit logs | **36 months** | ⚠️ Not yet automated |
+| Consent records | Duration of the account plus **3 years** | ⚠️ Not yet automated |
+| Records under legal hold | Until the matter is finally resolved | ⚠️ No legal-hold flag implemented |
 
-29.2 We delete or de-identify when the period expires. Deletion is real deletion, subject to backup rotation, which completes within `[N]` days.
+The periods marked ⚠️ are our policy, and we will honour them on request today, but they are not yet enforced by a job. Closing that gap is tracked in [COMPLIANCE-NOTES.md](COMPLIANCE-NOTES.md) §1.
+
+29.1 The enforced periods are configurable and are applied by a worker that runs several times a day. Each pass records what it purged, so we can show the periods were actually applied rather than merely published.
+
+29.2 Closing your account does not automatically delete reports you submitted, because those reports concern other people and may be the subject of a driver's dispute. We de-identify them: they stop being linked to you and become an anonymous historical record, unless we are required to preserve the link.
+
+29.3 We delete or de-identify when the period expires. Deletion from the live database is real deletion. Backups are a separate matter: a deleted record may persist in a backup until that backup ages out, and we cannot state that rotation period until the backup configuration in clause 27.4 is settled (`TBD: BACKUP_ROTATION_DAYS`). We do not restore a backup to recover data a person has asked us to delete.
 
 ## 30. Your rights under POPIA
 
@@ -485,12 +547,14 @@ You may, at any time and free of charge unless the law allows a fee:
 - **Not be subject to a decision based solely on automated processing** (s71);
 - **Complain to the Information Regulator**, and **go to court**.
 
-**How to exercise them:** email the Information Officer at `[EMAIL]`, or use the in-app privacy request form. We respond within **30 days**. If we need longer, we will tell you why. If we refuse, we will tell you the reasons and how to challenge it.
+**How to exercise them:** email the Information Officer at `TBD: IO_EMAIL`, or use the in-app privacy request form. We respond within **30 days**. If we need longer, we will tell you why. If we refuse, we will tell you the reasons and how to challenge it.
 
 **The Information Regulator (South Africa)**
-`[VERIFY CURRENT DETAILS BEFORE PUBLISHING]`
-JD House, 27 Stiemens Street, Braamfontein, Johannesburg, 2001
+Woodmead North Office Park, 54 Maxwell Drive, Woodmead, Johannesburg, 2191
 Complaints: `POPIAComplaints@inforegulator.org.za` · General: `enquiries@inforegulator.org.za`
+Complaints are lodged on **Form 5** of the POPIA Regulations: <https://inforegulator.org.za/contact-us/>
+
+*(The Regulator has moved before. Re-check this address at each annual review of this document.)*
 
 ## 31. Direct marketing
 
@@ -498,7 +562,7 @@ We send marketing only if you opt in. Every message has an unsubscribe link. Ser
 
 ## 32. Cookies and analytics
 
-We use cookies and local storage that are strictly necessary for authentication and security. Where we use analytics, we will name the provider here and offer a choice before any non-essential cookie is set: `[ANALYTICS PROVIDER / "None currently in use"]`.
+We use cookies and local storage that are strictly necessary for authentication and security. Where we use analytics, we will name the provider here and offer a choice before any non-essential cookie is set: `TBD: ANALYTICS_PROVIDER`.
 
 ---
 ---
@@ -513,7 +577,11 @@ We use cookies and local storage that are strictly necessary for authentication 
 
 33.2 That information came from passengers, not from you or from any e-hailing operator. We have no data-sharing arrangement with Uber, Bolt, inDrive, DiDi or anyone else.
 
-33.3 **Find out what we hold:** go to `[LEGAL URL]/drivers`, or email `[DRIVER EMAIL]`. We will verify your identity before disclosing anything — this protects you.
+33.3 **Find out what we hold:** go to `TBD: LEGAL_URL`/driver-rights, or email `TBD: DRIVER_EMAIL`.
+
+The self-check page is deliberately limited. It tells you whether we hold a record for a registration number and shows the same summary other users would see — categories, severity bands, counts and date ranges. It does **not** show you who reported you or what they wrote, because that would expose reporters to retaliation, and it is not a substitute for a full section 23 access request. For the complete picture, including who has had access to your record, email the Information Officer; we will verify your identity first.
+
+The page is rate limited and every lookup is logged. That is not aimed at you — it is there so the page cannot be used to work out which drivers we hold, which would harm every driver on the platform.
 
 ## 34. Your rights
 
@@ -533,14 +601,14 @@ We do not charge for this. We respond within **30 days**.
 
 35.1 You can appeal: an individual report, your risk score or status band, a mistaken identity or duplicate profile, or a refusal of an earlier request.
 
-35.2 **How:** email `[APPEALS EMAIL]` with your name, your vehicle registration, what you are disputing, and anything supporting your version — a trip record, a roadworthy certificate, an operator record, a police report, a statement. You do not need a lawyer.
+35.2 **How:** use the appeal form at `TBD: LEGAL_URL`/driver-rights, or email `TBD: APPEALS_EMAIL`. Give your name, your vehicle registration, what you are disputing, and what you can provide to show you are the driver in question — a trip record, a roadworthy certificate, an operator record, a police report, a statement. You do not need a lawyer, and you should not send documents until a moderator asks for them.
 
 35.3 **What we do:**
 
 | Step | Timeframe |
 |---|---|
 | Acknowledge your appeal | 2 business days |
-| **Suspend public display** of the disputed item while we review it | Immediately |
+| **Suspend public display** of the disputed item while we review it | Immediately, and automatically on lodging |
 | Review by a moderator who was not involved in the original decision | 10 business days |
 | Written outcome, with reasons | With the decision |
 | Escalation to the Information Officer if you are unhappy | 10 further business days |
@@ -566,31 +634,33 @@ We do not charge for this. We respond within **30 days**.
 
 # PART D — WHAT YOU AGREE TO AT SIGN-UP
 
-You must tick every box marked **required** before an account can be created. Each box is recorded separately, with a timestamp and the version of this agreement you accepted.
+You must tick every box marked **required** before an account can be created. Each box is recorded separately against your account, with the version of this agreement you were shown, the time, and the IP address you accepted from. You can see your own record at any time under *Profile → What I agreed to*.
 
-### Required
+Clause 1 requires acceptance of Parts A, B **and** C. The first box below is the one that carries all three — Part C is not optional for you to accept, even though the rights it grants belong to drivers rather than to you.
 
-- ☐ **I am 18 years of age or older.**
-- ☐ **I have read and accept the RydrSafe Terms of Use (Part A).**
-- ☐ **I have read and understand the POPIA Privacy Notice (Part B),** including how my information is used and how driver information is handled.
-- ☐ **I understand that a report is an allegation, not proof.** A driver appearing on RydrSafe has not been found guilty of anything, and a risk score is not a criminal record.
-- ☐ **I understand that a serious allegation is not published on my report alone.** Reports of criminal conduct stay private unless independently corroborated, and my description is never shown to other users.
-- ☐ **I understand that submitting a false or malicious report can result in a permanent ban and can expose me personally to a defamation claim by the driver,** and that RydrSafe will comply with a court order to disclose my identity.
-- ☐ **I understand that screenshots I upload are processed to extract text and are then deleted,** and that I may only upload screenshots of my own trips.
-- ☐ **I understand that RydrSafe cannot guarantee my safety,** that a clean result does not mean a driver is safe, and that in an emergency I must call 10111.
-- ☐ **I have read and accept clause 15 (Assumption of Risk and Limitation of Liability),** which limits RydrSafe's liability and which was drawn to my attention in a distinct format.
-- ☐ **I will not use RydrSafe to find, contact, confront or organise action against any driver.**
+## Required
 
-### Optional — you can create an account without these
+| # | Recorded as | You are agreeing that |
+|---|---|---|
+| 1 | `terms.parts-a-to-c` | **I have read and accept Parts A, B and C** — the Terms of Use, the POPIA Privacy Notice, and the Driver Rights section. |
+| 2 | `terms.clause-15-risk-limitation` | **I have read and accept clause 15 (Assumption of Risk and Limitation of Liability),** which limits RydrSafe's liability, which was drawn to my attention in a distinct format, and which does **not** exclude liability for death, personal injury, gross negligence or fraud. |
+| 3 | `eligibility.age-18-plus` | **I am 18 years of age or older.** |
+| 4 | `reporting.false-report-consequences` | **I understand that submitting a false or malicious report can result in a permanent ban and can expose me personally to a defamation claim by the driver,** and that RydrSafe will comply with a court order to disclose my identity. |
+| 5 | `privacy.screenshot-handling` | **I understand that screenshots I upload are sent to an OCR provider to have text read from them, are not stored by RydrSafe, and that only the extracted text and a hash are kept,** and that I may only upload screenshots of my own trips. |
+| 6 | `verification.risk-score-not-proof` | **I understand that a report is an allegation, not proof,** that a risk score is not a criminal record, that a serious allegation is not shown to other users on my report alone, and that **RydrSafe cannot guarantee my safety** — in an emergency I must call 10111. |
+
+The identifiers in the middle column are the keys the consent record is stored under. They are listed here so that what you see and what we store are demonstrably the same thing.
+
+## Optional — you can create an account without these
 
 - ☐ I would like to receive safety updates and product news by email. *(You can unsubscribe at any time.)*
 - ☐ I agree that my anonymised, aggregated report data may be used for public safety research and statistics. *(No one can be identified from aggregated data.)*
 
 ---
 
-**Questions about this agreement:** `[SUPPORT EMAIL]`
-**Privacy requests and the Information Officer:** `[PRIVACY EMAIL]`
-**Drivers — access, correction and appeals:** `[DRIVER EMAIL]`
-**Content complaints and take-downs:** `[TAKEDOWN EMAIL]`
+**Questions about this agreement:** `TBD: SUPPORT_EMAIL`
+**Privacy requests and the Information Officer:** `TBD: PRIVACY_EMAIL`
+**Drivers — access, correction and appeals:** `TBD: DRIVER_EMAIL`
+**Content complaints and take-downs:** `TBD: TAKEDOWN_EMAIL` (addressed to the designated agent under ECTA s75)
 
-*RydrSafe User Agreement v1.0 · `[EFFECTIVE DATE]` · Archived versions: `[LEGAL URL]/versions`*
+*RydrSafe User Agreement v1.0 · `TBD: EFFECTIVE_DATE` · Archived versions: `TBD: LEGAL_URL`/versions*

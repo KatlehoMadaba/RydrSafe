@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using RydrSafe.Application.Common.Exceptions;
 
 namespace RydrSafe.API.Middleware;
 
@@ -23,7 +24,11 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
         var (statusCode, message) = ex switch
         {
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, ex.Message),
+            ForbiddenException => (HttpStatusCode.Forbidden, ex.Message),
             KeyNotFoundException => (HttpStatusCode.NotFound, ex.Message),
+            RateLimitedException => (HttpStatusCode.TooManyRequests, ex.Message),
+            CategoryAProcessingDisabledException => (HttpStatusCode.ServiceUnavailable, ex.Message),
+            InvalidStateTransitionException => (HttpStatusCode.Conflict, ex.Message),
             InvalidOperationException => (HttpStatusCode.BadRequest, ex.Message),
             _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
         };
