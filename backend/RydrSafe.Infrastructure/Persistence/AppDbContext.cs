@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<VerificationHistory> VerificationHistories => Set<VerificationHistory>();
     public DbSet<DriverFollow> DriverFollows => Set<DriverFollow>();
+    public DbSet<Recommendation> Recommendations => Set<Recommendation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,6 +72,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(f => new { f.UserId, f.DriverId }).IsUnique();
             e.HasOne(f => f.User).WithMany().HasForeignKey(f => f.UserId).OnDelete(DeleteBehavior.Cascade);
             e.HasOne(f => f.Driver).WithMany().HasForeignKey(f => f.DriverId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Recommendation>(e =>
+        {
+            e.HasKey(r => r.Id);
+            e.Property(r => r.Category).HasConversion<string>();
+            e.Property(r => r.Status).HasConversion<string>();
+            e.Property(r => r.Subject).HasMaxLength(120).IsRequired();
+            e.Property(r => r.Message).HasMaxLength(2000).IsRequired();
+            e.HasIndex(r => new { r.UserId, r.CreatedAt });
+            e.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<VerificationHistory>(e =>

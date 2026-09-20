@@ -4,6 +4,7 @@ import {
   Flag,
   Bell,
   User,
+  Lightbulb,
   FileText,
   Car,
   Users,
@@ -43,6 +44,10 @@ export const NAV_CONFIG: Record<UserRole, RoleNavConfig> = {
       { to: '/passenger/verify', icon: Search, label: 'Verify' },
       { to: '/passenger/report', icon: Flag, label: 'Report' },
       { to: '/passenger/alerts', icon: Bell, label: 'Alerts' },
+      // Sixth item: the bottom bar gives each entry flex-1, so this narrows the others
+      // rather than overflowing. Keep the label short — anything longer than "Alerts"
+      // starts truncating on a 360px screen.
+      { to: '/passenger/recommendations', icon: Lightbulb, label: 'Ideas' },
       { to: '/passenger/profile', icon: User, label: 'Profile' },
     ],
   },
