@@ -1,0 +1,29 @@
+# Netlify build config for the RydrSafe SPA.
+#
+# The frontend is a Vite app living in a subdirectory of this monorepo, so Netlify
+# needs three things spelled out: where to run the build (`base`), how to build
+# (`command`), and which folder holds the *built* output (`publish`, relative to
+# `base`). Without them Netlify published the raw `frontend/` source — the browser
+# received index.html still pointing at `/src/main.tsx`, which it cannot execute,
+# so every visitor got a blank page.
+#
+# NOTE: if a "Base directory" is also set in the Netlify UI, Netlify looks for this
+# file inside that directory instead of the repo root. Clear the UI field so these
+# settings are the ones that apply.
+
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# SPA fallback. react-router owns client-side routing, so any deep link
+# (/report, /driver/123, …) must be served index.html rather than a 404.
+# frontend/vercel.json declares the same rewrite but is Vercel-only — Netlify
+# ignores it.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
