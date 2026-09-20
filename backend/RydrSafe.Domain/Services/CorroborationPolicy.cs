@@ -26,10 +26,25 @@ public static class CorroborationPolicy
     /// Two reports are treated as independent unless they share a reporter, or share a device or
     /// network signal. These are the only linkage signals RydrSafe collects, and they are
     /// disclosed in Part B clause 20.1.
+    ///
+    /// Reporter identity is tested through the pseudonymous key first, because that is what
+    /// survives account deletion. Without it, two reports from one closed account would both
+    /// carry a null <c>UserId</c> and could corroborate each other — the exact collusion
+    /// clause 6.3(a) exists to catch.
     /// </summary>
     public static bool AreIndependent(Report a, Report b)
     {
-        if (a.UserId == b.UserId) return false;
+        if (!string.IsNullOrEmpty(a.ReporterKeyHash) && a.ReporterKeyHash == b.ReporterKeyHash)
+            return false;
+
+        if (a.UserId is not null && a.UserId == b.UserId) return false;
+
+        // Both reporters are unknown and at least one predates the pseudonymous key, so there is
+        // nothing left to tell these two apart. Independence has to be shown, not assumed: the
+        // cost of guessing wrong here is publishing an uncorroborated criminal allegation.
+        if (a.UserId is null && b.UserId is null
+            && (string.IsNullOrEmpty(a.ReporterKeyHash) || string.IsNullOrEmpty(b.ReporterKeyHash)))
+            return false;
 
         if (!string.IsNullOrEmpty(a.SubmissionDeviceHash)
             && a.SubmissionDeviceHash == b.SubmissionDeviceHash) return false;
