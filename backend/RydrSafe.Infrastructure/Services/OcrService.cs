@@ -1,7 +1,9 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
+using RydrSafe.Application.Common.Exceptions;
 using RydrSafe.Application.Common.Interfaces;
 
 namespace RydrSafe.Infrastructure.Services;
@@ -37,6 +39,17 @@ public class OcrService(IConfiguration config, HttpClient httpClient) : IOcrServ
         if (!response.IsSuccessStatusCode)
         {
             var errorBody = await response.Content.ReadAsStringAsync();
+
+            // 403 covers quota exhausted and billing disabled, 429 is rate limiting. None of
+            // these are the caller's fault, so they must not surface as "bad request" — they
+            // mean scanning is unavailable and the passenger should be offered manual entry.
+            // The provider's error body is logged, never returned: it leaks project internals.
+            if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.TooManyRequests)
+            {
+                throw new OcrUnavailableException(
+                    $"Google Vision refused the request ({(int)response.StatusCode}): {errorBody}");
+            }
+
             throw new InvalidOperationException($"Google Vision API error {(int)response.StatusCode}: {errorBody}");
         }
 

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
+import { isAxiosError } from 'axios'
 import { Upload, PenLine, Flag } from 'lucide-react'
 import { toast } from 'sonner'
 import { Link } from 'react-router-dom'
@@ -47,7 +48,25 @@ export function VerifyDriverPage() {
     setPhase('confirm')
   }
 
-  const uploadMutation = useMutation({ mutationFn: () => verificationApi.upload(files), onSuccess, onError })
+  // Photo scanning runs on a metered OCR quota, and verification is deliberately open to
+  // anonymous visitors, so the quota can run out through ordinary use. When the API says
+  // so, move the passenger to manual entry rather than leaving them at a dead end — they
+  // can still check the driver, they just type the plate instead of photographing it.
+  const onUploadError = (err: unknown) => {
+    if (isAxiosError<{ ocrUnavailable?: boolean }>(err) && err.response?.data?.ocrUnavailable) {
+      setMode('manual')
+      setPhase('upload')
+      toast.info('Photo scanning is unavailable right now. Enter the registration number instead.')
+      return
+    }
+    onError()
+  }
+
+  const uploadMutation = useMutation({
+    mutationFn: () => verificationApi.upload(files),
+    onSuccess,
+    onError: onUploadError,
+  })
   const manualMutation = useMutation({
     mutationFn: () =>
       verificationApi.verifyManual({

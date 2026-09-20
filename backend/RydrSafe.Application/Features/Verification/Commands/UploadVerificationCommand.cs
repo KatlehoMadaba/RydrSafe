@@ -26,15 +26,18 @@ public class UploadVerificationCommandHandler(
 {
     public async Task<VerificationResponse> Handle(UploadVerificationCommand request, CancellationToken cancellationToken)
     {
+        // Every image is a separate paid OCR call against a monthly quota, so stop as soon as
+        // we hold enough to identify a driver. Scanning all three regardless tripled the cost
+        // of the common case where the first photo already showed the licence disc.
         var ocr = await ocrService.ExtractAsync(request.Image1);
 
-        if (request.Image2 is not null)
+        if (request.Image2 is not null && !CanAttemptMatch(ocr))
         {
             var ocr2 = await ocrService.ExtractAsync(request.Image2);
             ocr = MergeOcrResults(ocr, ocr2);
         }
 
-        if (request.Image3 is not null)
+        if (request.Image3 is not null && !CanAttemptMatch(ocr))
         {
             var ocr3 = await ocrService.ExtractAsync(request.Image3);
             ocr = MergeOcrResults(ocr, ocr3);
@@ -142,6 +145,16 @@ public class UploadVerificationCommandHandler(
             true,
             matchedDriver.Id);
     }
+
+    /// <summary>
+    /// Whether we hold enough to look a driver up without scanning more photos.
+    /// Registration number and phone number are exact lookups; a name alone is not enough,
+    /// because it only reaches the fuzzy match below and extra photos genuinely help there.
+    /// Mirrors the lookup order in <see cref="Handle"/> — keep the two in step.
+    /// </summary>
+    private static bool CanAttemptMatch(OcrResult ocr) =>
+        !string.IsNullOrWhiteSpace(ocr.RegistrationNumber)
+        || !string.IsNullOrWhiteSpace(ocr.PhoneNumber);
 
     private static OcrResult MergeOcrResults(OcrResult a, OcrResult b) => new(
         a.DriverName ?? b.DriverName,
