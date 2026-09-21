@@ -31,7 +31,23 @@ These were the original B1–B12 blockers. They are implemented and the agreemen
 | B13 | **Self-service account deletion.** Immediate, password-confirmed, and it de-identifies the reporter's reports in the same operation rather than promising to later. The reporter FK is deliberately `Restrict`, so a report can never be silently cascaded away with its author. | `DeleteAccountCommand.cs`, `ReportRepository.DeIdentifyByUserAsync` |
 | B14 | **Pseudonymous reporter key.** A salted hash of the account id, written at submission, so the clause 6.3(a) independence test survives account deletion. Without it two reports from one closed account would both carry a null reporter and could corroborate each other. | `CreateReportCommand.cs`, `CorroborationPolicy.AreIndependent` |
 | B15 | **Anonymity option on reports.** Recorded as a request and surfaced to the moderator, without severing the account link that clauses 6.2, 6.3(a) and 37 all depend on. Clause 6.4 says exactly that rather than overselling it. | `Report.IsAnonymous`, `ReportDriverPage.tsx` |
+| B17 | **Validation actually runs.** `ValidationBehavior` is registered as a MediatR `IPipelineBehavior`, so every `AbstractValidator` is invoked before its handler. **B6, B9 and B10 depend entirely on this** — see the note below. | `ValidationBehavior.cs`, `Application/DependencyInjection.cs` |
 | B16 | **Server-side sign-out.** Clearing local storage left the stored refresh token valid; `POST /api/auth/logout` revokes it. A password change rotates it too, which signs out every other session. | `LogoutCommand.cs`, `ChangePasswordCommand.cs` |
+
+> **Why B17 is listed separately.** Until it landed, `AddValidatorsFromAssembly` put all 19
+> validators in the container and **nothing ever resolved them**. Every `AbstractValidator` was
+> dead code. That meant the 18+ age gate (B10), the Part D required-consent check (B9) and the
+> moderator reason/review-confirmation rules (B6) were documented here as enforced while the API
+> would in fact accept a registration from a twelve-year-old with no boxes ticked, and a
+> Category A approval with an empty reason.
+>
+> This file claimed those three as "Built" while they were not. That was wrong, and it is exactly
+> the failure the rest of this document exists to prevent — a written control with nothing behind
+> it. Issue #39 had flagged the missing pipeline; the compliance work was layered on top without
+> checking. Verified after the fix: the behavior is resolved for the request pipeline, an under-18
+> date of birth is rejected, missing consents are rejected, and a valid registration passes through.
+>
+> The lesson worth keeping: a validator that is registered is not a validator that runs.
 
 Two things changed behaviour for existing data, and the migration handles both: reports previously marked `Escalated` return to `Pending`, and every driver's risk score and status reset to zero/`Safe`, because the old scores were computed from uncorroborated reports.
 
@@ -116,16 +132,29 @@ Searching for a bare `[` does not work — it matches every Markdown link.
 
 **This check runs on every frontend build.** `frontend/scripts/sync-legal.mjs` copies this
 directory's agreement into `frontend/public/legal/` — there were two copies and they had
-drifted, with the served one still carrying the wrong POPIA citations — and it **fails the
-build** while any `TBD:` token remains, rather than publishing a draft as though it were
-binding.
+drifted, with the served one still carrying the wrong POPIA citations — and it gates
+publication of a draft.
 
-⚠️ **Deployment consequence.** `ALLOW_DRAFT_LEGAL=true` is set in `frontend/vercel.json` so
-preview deploys of this branch keep working. **`main` carries a `netlify.toml` that does not
-set it**, so merging this branch without adding that variable there will fail the Netlify
-build. Either add it to `netlify.toml` under `[build.environment]` with a note to remove it
-before launch, or resolve the tokens first. The variable must come out before the real
-launch — that is the point of the check.
+It does **not** fail every build. It keys off the deploy context each platform reports:
+
+| Build | Behaviour |
+|---|---|
+| Local (`npm run build`) | Warns, proceeds |
+| Netlify deploy preview / branch deploy (`CONTEXT` ≠ `production`) | Warns, proceeds |
+| Vercel preview (`VERCEL_ENV=preview`) | Warns, proceeds |
+| **Netlify production** (`CONTEXT=production`) | **Fails** |
+| **Vercel production** (`VERCEL_ENV=production`) | **Fails** |
+| Anywhere, with `ENFORCE_FINAL_LEGAL=true` | **Fails** — for testing the strict path |
+| Production, with `ALLOW_DRAFT_LEGAL=true` | Warns, proceeds — knowing override |
+
+An earlier version failed *every* build, including pull-request previews. That turned every PR
+red for a state the whole team already knew about (it broke the Netlify checks on PR #40), and
+a check that is always red is a check nobody reads. Previews are where you review a draft, so
+warning there and failing on production is the distinction that matters.
+
+**Production will stay red until the tokens are resolved.** That is the intended behaviour, not
+a bug to be worked around. `ALLOW_DRAFT_LEGAL` exists for a deliberate decision to launch with
+placeholders, which should not happen.
 
 The ones that need a decision rather than a lookup:
 

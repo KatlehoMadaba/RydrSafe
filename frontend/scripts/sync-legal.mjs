@@ -15,20 +15,57 @@ const here = dirname(fileURLToPath(import.meta.url))
 const source = resolve(here, '../../docs/legal/user-agreement.md')
 const destination = resolve(here, '../public/legal/user-agreement.md')
 
-const text = await readFile(source, 'utf8')
-
-// The agreement carries TBD: tokens for every value still to be decided. Shipping it in that
-// state would publish a draft as though it were binding, so the build refuses unless the
-// release explicitly opts in.
-if (text.includes('TBD:') && process.env.ALLOW_DRAFT_LEGAL !== 'true') {
-  const count = text.match(/TBD:/g).length
-
+let text
+try {
+  text = await readFile(source, 'utf8')
+} catch (error) {
+  // Failing loudly is the point: silently leaving the previously-synced copy in place is how
+  // the two versions drifted apart in the first place.
   console.error(
-    `\nRefusing to publish the user agreement: ${count} unresolved TBD: token(s) remain.\n`
-    + 'Resolve them (see docs/legal/COMPLIANCE-NOTES.md §5), or set ALLOW_DRAFT_LEGAL=true\n'
-    + 'to build anyway for a preview deploy.\n',
+    `\nCannot read the canonical user agreement at:\n  ${source}\n\n`
+    + 'The build runs from frontend/ but this file lives at the repository root, so a build\n'
+    + 'that only checks out frontend/ will not find it.\n',
   )
-  process.exit(1)
+  throw error
+}
+
+const tokens = text.match(/TBD:/g) ?? []
+
+if (tokens.length > 0) {
+  // Who is allowed to ship a draft, and who is not.
+  //
+  // The document is a binding agreement with placeholders still in it. Publishing that to
+  // production would put a draft in front of users as though it were final. Publishing it to a
+  // preview would not — a preview is how you review the thing before it is final.
+  //
+  // Failing every build, as this used to, turned every pull request red for a state everyone
+  // already knew about. A check that is always red is a check nobody reads, which costs more
+  // safety than it buys. So enforcement keys off the deploy context each platform reports.
+  const isProduction =
+    process.env.CONTEXT === 'production' // Netlify: production | deploy-preview | branch-deploy | dev
+    || process.env.VERCEL_ENV === 'production' // Vercel: production | preview | development
+    || process.env.ENFORCE_FINAL_LEGAL === 'true' // force the strict path anywhere
+
+  // Last-resort override, for the case where production must ship with the draft knowingly.
+  const overridden = process.env.ALLOW_DRAFT_LEGAL === 'true'
+
+  if (isProduction && !overridden) {
+    console.error(
+      `\nRefusing to publish the user agreement to production: ${tokens.length} unresolved `
+      + 'TBD: token(s) remain.\n\n'
+      + 'The agreement still contains placeholders (company registration, operator regions,\n'
+      + 'the section 57 application status). Resolve them — see\n'
+      + 'docs/legal/COMPLIANCE-NOTES.md section 5 — before this goes live.\n\n'
+      + 'To ship anyway, knowingly, set ALLOW_DRAFT_LEGAL=true.\n',
+    )
+    process.exit(1)
+  }
+
+  console.warn(
+    `\n⚠  User agreement is still a DRAFT: ${tokens.length} unresolved TBD: token(s).\n`
+    + '   Fine for a preview or a local build. A production deploy will refuse it until they\n'
+    + '   are resolved (docs/legal/COMPLIANCE-NOTES.md section 5).\n',
+  )
 }
 
 await mkdir(dirname(destination), { recursive: true })

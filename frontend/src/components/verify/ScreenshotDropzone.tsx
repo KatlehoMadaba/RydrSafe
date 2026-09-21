@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Upload, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -82,18 +82,61 @@ export function ScreenshotDropzone({ files, onAddFiles, onRemoveFile }: Screensh
   )
 }
 
-/** Confirm-step previews. Object URLs are created per file list and revoked on cleanup — never leaked across re-renders. */
-export function ScreenshotThumbnails({ files }: { files: File[] }) {
-  const urls = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files])
+/**
+ * Confirm-step previews.
+ *
+ * The object URLs are created inside the effect rather than in a `useMemo`, so the cleanup can
+ * only ever revoke URLs that same effect created. Under StrictMode React mounts, runs cleanup,
+ * then mounts again — but a memoised value survives that cycle untouched. The first cleanup
+ * therefore revoked the very URLs still bound to the `<img>` tags, and nothing recreated them,
+ * so every preview rendered as a broken image. Creating them in the effect means the remount
+ * makes fresh URLs.
+ */
+export function ScreenshotThumbnails({
+  files,
+  onRemove,
+}: {
+  files: File[]
+  /** Omit to render read-only previews. */
+  onRemove?: (index: number) => void
+}) {
+  const [urls, setUrls] = useState<string[]>([])
 
   useEffect(() => {
-    return () => urls.forEach((u) => URL.revokeObjectURL(u))
-  }, [urls])
+    const created = files.map((f) => URL.createObjectURL(f))
+    // The blob registry is an external system, and creating a URL has to be paired with the
+    // cleanup that revokes it — which is the case this rule exempts. Deriving these during
+    // render instead is precisely what produced the broken previews this replaces.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUrls(created)
+    return () => created.forEach((u) => URL.revokeObjectURL(u))
+  }, [files])
 
   return (
     <div className="grid grid-cols-3 gap-2">
       {urls.map((url, i) => (
-        <img key={url} src={url} alt={`Screenshot ${i + 1}`} className="aspect-square w-full rounded-lg border border-border object-cover" />
+        <div key={url} className="relative">
+          <img
+            src={url}
+            alt={files[i]?.name ?? `Screenshot ${i + 1}`}
+            className="aspect-square w-full rounded-lg border border-border object-cover"
+          />
+          {onRemove && (
+            <button
+              type="button"
+              onClick={() => onRemove(i)}
+              // Spotting the wrong screenshot is most likely here, at the last look before
+              // upload, so the correction has to be available here rather than only a step back.
+              aria-label={`Remove ${files[i]?.name ?? `screenshot ${i + 1}`}`}
+              className="absolute right-1 top-1 rounded-full bg-navy-900/70 p-1 text-white transition-colors hover:bg-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <p className="mt-1 truncate text-xs text-muted-foreground" title={files[i]?.name}>
+            {files[i]?.name}
+          </p>
+        </div>
       ))}
     </div>
   )

@@ -54,6 +54,17 @@ const CONSENTS: Consent[] = [
   },
 ]
 
+/**
+ * react-hook-form reads a dot in a field name as a path separator, so registering
+ * `terms.parts-a-to-c` builds `{ terms: { 'parts-a-to-c': true } }` rather than the flat key the
+ * schema declares. The flat key then reads as `undefined`, `z.literal(true)` rejects it, and
+ * submission fails silently with no error rendered anywhere — the button looks dead (issue #37).
+ *
+ * The consent keys themselves are the audit trail and must not change, so only the form field
+ * name is rewritten. The key goes to the server exactly as declared in `CONSENTS`.
+ */
+const fieldName = (consentKey: string) => consentKey.replace(/\./g, '_')
+
 const EIGHTEEN_YEARS_AGO = () => {
   const d = new Date()
   d.setFullYear(d.getFullYear() - 18)
@@ -74,7 +85,7 @@ const schema = z
     // Each consent is its own required boolean, so the user cannot proceed on a partial set.
     ...Object.fromEntries(
       CONSENTS.map((c) => [
-        c.key,
+        fieldName(c.key),
         z.literal(true, { message: 'This is required' }),
       ]),
     ),
@@ -116,7 +127,7 @@ export function RegisterPage() {
         locale: 'en-ZA',
         consents: CONSENTS.map((c) => ({
           consentKey: c.key,
-          accepted: Boolean((data as Record<string, unknown>)[c.key]),
+          accepted: Boolean((data as Record<string, unknown>)[fieldName(c.key)]),
         })),
       })
       toast.success('Account created. Welcome to RydrSafe.')
@@ -242,12 +253,14 @@ export function RegisterPage() {
                   <input
                     type="checkbox"
                     className="mt-1 h-4 w-4 shrink-0"
-                    {...register(consent.key as keyof FormData)}
+                    {...register(fieldName(consent.key) as keyof FormData)}
                   />
                   <span>{consent.label}</span>
                 </label>
-                {fieldError(consent.key) && (
-                  <p className="ml-6 text-xs text-highrisk">{fieldError(consent.key)}</p>
+                {fieldError(fieldName(consent.key)) && (
+                  <p className="ml-6 text-xs text-highrisk">
+                    {fieldError(fieldName(consent.key))}
+                  </p>
                 )}
               </div>
             ))}

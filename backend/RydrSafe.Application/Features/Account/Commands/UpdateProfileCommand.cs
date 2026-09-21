@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using FluentValidation;
 using MediatR;
 using RydrSafe.Application.Common.Interfaces;
@@ -12,17 +11,14 @@ namespace RydrSafe.Application.Features.Account.Commands;
 /// </summary>
 public record UpdateProfileCommand(Guid UserId, string FullName, string Email) : IRequest<UserDto>;
 
-/// <summary>
-/// Registered, but nothing runs it yet — there is no MediatR validation behavior in the pipeline
-/// (issue #39). Until that lands, <see cref="UpdateProfileCommandHandler"/> enforces the same
-/// rules itself. Keep the two in step.
-/// </summary>
 public class UpdateProfileCommandValidator : AbstractValidator<UpdateProfileCommand>
 {
     public UpdateProfileCommandValidator()
     {
-        RuleFor(x => x.FullName).NotEmpty().MaximumLength(255);
-        RuleFor(x => x.Email).NotEmpty().EmailAddress();
+        RuleFor(x => x.FullName).NotEmpty().MinimumLength(2).MaximumLength(255)
+            .WithMessage("Your full name must be between 2 and 255 characters.");
+        RuleFor(x => x.Email).NotEmpty().EmailAddress()
+            .WithMessage("Enter a valid email address.");
     }
 }
 
@@ -31,16 +27,10 @@ public class UpdateProfileCommandHandler(IUserRepository userRepository)
 {
     public async Task<UserDto> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
     {
-        // Duplicated from the validator on purpose; see the note there.
-        var fullName = request.FullName?.Trim() ?? string.Empty;
-
-        if (fullName.Length < 2 || fullName.Length > 255)
-            throw new InvalidOperationException("Your full name must be between 2 and 255 characters.");
-
-        var email = request.Email?.Trim().ToLowerInvariant() ?? string.Empty;
-
-        if (!new EmailAddressAttribute().IsValid(email))
-            throw new InvalidOperationException("Enter a valid email address.");
+        // Shape is enforced by UpdateProfileCommandValidator before this runs. Normalising is
+        // not validation, so it stays here.
+        var fullName = request.FullName.Trim();
+        var email = request.Email.Trim().ToLowerInvariant();
 
         var user = await userRepository.GetByIdAsync(request.UserId)
             ?? throw new UnauthorizedAccessException("User not found.");
