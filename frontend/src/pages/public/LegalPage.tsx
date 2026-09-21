@@ -20,6 +20,11 @@ export function LegalPage() {
   const [markdown, setMarkdown] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
 
+  // The agreement is published while placeholders remain, so the page has to say so. Detecting
+  // it from the served text rather than a build flag means the notice cannot outlive the draft:
+  // resolve the last TBD: and it disappears on its own.
+  const isDraft = markdown?.includes('TBD:') ?? false
+
   useEffect(() => {
     let cancelled = false
 
@@ -53,6 +58,18 @@ export function LegalPage() {
           </Link>
         </Button>
       </div>
+
+      {isDraft && (
+        <div className="mb-6 rounded-lg border border-review-muted bg-review-soft p-4">
+          <p className="text-sm font-semibold text-review-strong">This agreement is a draft.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Some details are still marked <code className="font-mono text-xs">TBD:</code> — including
+            the operating entity, the Information Officer's contact details, and the data-processing
+            arrangements with our service providers. Those sections are not yet settled and should
+            not be relied on. Everything else describes how RydrSafe actually works today.
+          </p>
+        </div>
+      )}
 
       {failed && (
         <div className="rounded-lg border border-highrisk-muted bg-highrisk-soft p-4">

@@ -498,12 +498,12 @@ Each of these is covered by the retention periods in clause 29, after which the 
 
 | Operator | Purpose | Data reaching them | Processing region | s21(1) contract |
 |---|---|---|---|---|
-| **Google Cloud (Cloud Vision API)** | Optical character recognition on uploaded screenshots | The full screenshot image, including everything visible in it | `TBD: GOOGLE_VISION_REGION` | `TBD: GOOGLE_DPA_STATUS` |
-| **Render** | Application hosting and compute | All application data in transit; logs | `TBD: RENDER_REGION` | `TBD: RENDER_DPA_STATUS` |
-| **Supabase** (PostgreSQL) | Database, and database backups | All stored personal information | `TBD: SUPABASE_REGION` | `TBD: SUPABASE_DPA_STATUS` |
-| **Netlify** | Static hosting of the web front end | Request metadata and IP addresses | `TBD: NETLIFY_REGION` | `TBD: NETLIFY_DPA_STATUS` |
+| **Google Cloud (Cloud Vision API)** | Optical character recognition on uploaded screenshots | The full screenshot image, including everything visible in it | Google global infrastructure (processed outside South Africa) | `TBD: GOOGLE_DPA_STATUS` |
+| **Render** | Application hosting and compute | All application data in transit; logs | United States (Oregon, `gcp-us-west1`) | `TBD: RENDER_DPA_STATUS` |
+| **Supabase** (PostgreSQL) | Database, and database backups | All stored personal information | European Union (Frankfurt, `eu-central-1`) | `TBD: SUPABASE_DPA_STATUS` |
+| **Netlify** | Static hosting of the web front end | Request metadata and IP addresses | Global edge network (processed outside South Africa) | `TBD: NETLIFY_DPA_STATUS` |
 | `TBD: EMAIL_PROVIDER` | Transactional email | Email address, message content | `TBD: REGION` | `TBD: DPA_STATUS` |
-| `TBD: ERROR_LOG_PROVIDER` | Error monitoring, logging | Whatever appears in an error, which may include identifiers | `TBD: REGION` | `TBD: DPA_STATUS` |
+| *None at present* | Error monitoring, logging | — | — | Not used. If one is introduced it will be named here before it is enabled. |
 
 **On OCR specifically.** An earlier draft of this clause said OCR ran inside our own infrastructure on Tesseract and that screenshots were not sent to a third party. **That was wrong, and we have corrected it.** Screenshots are sent to Google Cloud Vision to be read. That makes Google an operator, and it makes every upload a cross-border transfer. We need to record, and have not yet recorded: Google's retention period for images submitted to the Vision API, whether those images are used for any purpose beyond returning the result, and which subprocessors Google in turn uses.
 
@@ -518,7 +518,7 @@ Each of these is covered by the retention periods in clause 29, after which the 
 | Supabase | All stored data, backups | `TBD: REGION` | `TBD: SUBPROCESSORS` | `TBD: DELETION` | `TBD: GROUND` |
 | Netlify | Request metadata, IPs | `TBD: REGION` | `TBD: SUBPROCESSORS` | `TBD: DELETION` | `TBD: GROUND` |
 | `TBD: EMAIL_PROVIDER` | Email address, content | `TBD: REGION` | `TBD: SUBPROCESSORS` | `TBD: DELETION` | `TBD: GROUND` |
-| `TBD: ERROR_LOG_PROVIDER` | Error payloads | `TBD: REGION` | `TBD: SUBPROCESSORS` | `TBD: DELETION` | `TBD: GROUND` |
+| *None at present* | — | — | — | — | Not used. |
 
 Backup replication regions count as transfers in their own right and must be listed above, not assumed to follow the primary region.
 
@@ -584,7 +584,7 @@ We send marketing only if you opt in. Every message has an unsubscribe link. Ser
 
 ## 32. Cookies and analytics
 
-We use cookies and local storage that are strictly necessary for authentication and security. Where we use analytics, we will name the provider here and offer a choice before any non-essential cookie is set: `TBD: ANALYTICS_PROVIDER`.
+We use cookies and local storage that are strictly necessary for authentication and security. We do not currently use analytics. If we introduce it we will name the provider here and offer a choice before any non-essential cookie is set.
 
 ---
 ---
