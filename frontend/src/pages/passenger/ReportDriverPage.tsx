@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, EyeOff } from 'lucide-react'
 
 const schema = z.object({
   driverName: z.string().min(2, 'Driver name is required'),
@@ -24,6 +24,9 @@ const schema = z.object({
   description: z.string().min(20, 'Please provide at least 20 characters of detail'),
   incidentDate: z.string().min(1, 'Incident date is required'),
   reportedToPolice: z.boolean(),
+  // Clause 6.4. Withholds the reporter's name from the moderation queue; the report stays
+  // linked to the account underneath, which the copy below says plainly.
+  isAnonymous: z.boolean(),
   // Clause 6.3(b). Optional, but supplying one is the fastest route to corroboration.
   officialReference: z.string().max(100).optional(),
 })
@@ -73,7 +76,7 @@ export function ReportDriverPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { reportedToPolice: false },
+    defaultValues: { reportedToPolice: false, isAnonymous: false },
   })
 
   useEffect(() => {
@@ -220,6 +223,45 @@ export function ReportDriverPage() {
                   Drivers with multiple reports that have been taken to the police are marked as high risk.
                 </span>
               </Label>
+            </div>
+
+            <div className="space-y-2 rounded-md border border-border p-3">
+              <div className="flex items-start gap-2">
+                <input
+                  id="isAnonymous"
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded border-input text-primary focus:ring-ring"
+                  {...register('isAnonymous')}
+                />
+                <Label htmlFor="isAnonymous" className="text-sm font-normal text-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <EyeOff className="h-3.5 w-3.5 text-subtle" />
+                    Submit this report anonymously
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    Your name is withheld from the report. Other users never see who reported a
+                    driver in any case (clause 6.4).
+                  </span>
+                </Label>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                <strong className="font-medium text-foreground">Be clear about what this does.</strong>{' '}
+                The report stays linked to your account in our database. It has to: two reports
+                from one account cannot corroborate each other (clause 6.3(a)), you need the link
+                to withdraw your own report, and it is how we deal with people who abuse the
+                platform (clause 37). If you would rather we never held your real identity at all,
+                create your account with a disposable address from a service such as{' '}
+                <a
+                  href="https://temp-mail.org/en/"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-teal-600 underline-offset-4 hover:underline"
+                >
+                  temp-mail.org
+                </a>
+                . Note that you will not be able to recover that account if you lose the mailbox.
+              </p>
             </div>
 
             <Button type="submit" className="w-full" isLoading={isSubmitting || mutation.isPending}>

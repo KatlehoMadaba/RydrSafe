@@ -163,6 +163,20 @@ export function RegisterPage() {
           <div className="space-y-1">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" placeholder="you@example.com" {...register('email')} />
+            <p className="text-xs text-muted-foreground">
+              Would rather we never held your real address? A disposable one from a service such
+              as{' '}
+              <a
+                href="https://temp-mail.org/en/"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-primary hover:underline"
+              >
+                temp-mail.org
+              </a>{' '}
+              works here. Lose access to that mailbox and you lose the account with it — there is
+              no other way back in.
+            </p>
             {errors.email && <p className="text-xs text-highrisk">{errors.email.message}</p>}
             {emailTaken && (
               <p className="text-xs text-muted-foreground">

@@ -81,6 +81,12 @@ This summary is not the agreement — it is here so you know what you are agreei
 
 4.3 We record, against your account, which version of this agreement you accepted, which boxes you ticked, and when. This is our record of your consent under POPIA and your acceptance of this contract.
 
+4.4 You can correct your name and email address yourself, at any time, under **Profile**. Your email address is also how you sign in, so changing it changes your sign-in details.
+
+4.5 You can delete your account yourself, at any time, under **Profile**. Deletion is immediate and cannot be undone. It removes your account, your consent records, your notifications, the drivers you follow and your verification history. Reports you submitted are kept but unlinked from you — see clause 29.2 for why. Your email address is released when the account goes, so you are free to sign up again with it afterwards; that is a new account, and it does not restore anything from the old one.
+
+4.6 You do not have to give us an address you use for anything else. If you would rather we never held your real email address, a disposable one works. The trade-off is yours to make knowingly: we have no other way of identifying you, so if you lose access to that mailbox you lose the account with it, and we will not be able to restore it for you.
+
 ## 5. Verification — how it works and what it cannot tell you
 
 5.1 You upload one or more screenshots. We extract the driver name, vehicle registration number, vehicle make and model, and phone number where visible. The image is then deleted (see clause 10 and Part B, clause 25).
@@ -137,6 +143,16 @@ Where a report is published, other users see only:
 - the **date range** in which the incidents were reported.
 
 Other users **never** see the free-text description you wrote, your name, your account, or any detail that would identify you or the specific trip. We do not publish descriptions because a description is where defamatory detail lives.
+
+**Reporting anonymously.** The report form offers an anonymity option, and it is worth being precise about what it does, because "anonymous" is a word platforms routinely oversell.
+
+Ticking it marks your report as one where you asked not to be named, and that request is shown to the moderator reviewing it. What it does **not** do is sever the report from your account in our database. It cannot, for three reasons:
+
+- **Clause 6.3(a) depends on it.** Two reports from the same account must never corroborate each other. If reports were genuinely unlinked, one person with one account could manufacture corroboration at will, and the single safeguard this platform's legal position rests on would stop working.
+- **Withdrawal depends on it.** Clause 6.2 lets you withdraw your own report. We can only offer that if we can tell which reports are yours.
+- **Clause 37 depends on it.** Where someone reports maliciously or repeatedly in bad faith, we have to be able to act on the account behind it.
+
+So: anonymity here means your name is withheld from other users — which clause 6.4 already guarantees for every report — and your request not to be named is recorded and respected. It does not mean we do not know who you are. If you want us never to hold your real identity in the first place, clause 4.6 is the route, and the trade-offs there are real.
 
 ### 6.5 Right of reply
 
@@ -336,11 +352,11 @@ Our PAIA manual is available at `TBD: LEGAL_URL/paia`.
 | Reports you submit | Category, severity, description, incident date, driver and vehicle details you supply | You |
 | Verification activity | Extracted driver/vehicle text, match results, timestamps | Your uploads |
 | Technical | IP address, device and browser information, login history, audit log entries | Automatic |
-| Report independence signals | A one-way salted hash of the IP address and of a device identifier, stored against each report you submit | Automatic |
+| Report independence signals | A one-way salted hash of the IP address, of a device identifier, and of your account identifier, stored against each report you submit | Automatic |
 | Support | Correspondence with us | You |
 | Consent record | Which agreement version and checkboxes you accepted, when, from which IP | Automatic |
 
-**On the independence signals.** When you submit a report we store a one-way salted hash of your IP address and of a device identifier alongside it. We use these for exactly one purpose: deciding, under clause 6.3(a), whether two reports naming the same driver came from genuinely separate people, or from one person using two accounts. The raw address and identifier are never written to the database, the hashes cannot be reversed to recover them, and they are not used for advertising, profiling, location inference or any other decision about you. They are retained for as long as the report is (clause 29), and only moderators investigating coordinated reporting can see that a match occurred — never the underlying values. Our ground for this is section 11(1)(f), the same legitimate interest in abuse prevention set out in clause 23.
+**On the independence signals.** When you submit a report we store a one-way salted hash of your IP address, of a device identifier, and of your account identifier alongside it. The last of these exists so that clause 6.3(a) keeps working after an account is deleted: once the link to your account is removed under clause 29.2, that hash is the only thing left that can tell two de-identified reports apart, and without it two reports from one closed account could corroborate each other. It identifies nobody on its own — it cannot be reversed, and there is no account left for it to point at. We use these for exactly one purpose: deciding, under clause 6.3(a), whether two reports naming the same driver came from genuinely separate people, or from one person using two accounts. The raw address and identifier are never written to the database, the hashes cannot be reversed to recover them, and they are not used for advertising, profiling, location inference or any other decision about you. They are retained for as long as the report is (clause 29), and only moderators investigating coordinated reporting can see that a match occurred — never the underlying values. Our ground for this is section 11(1)(f), the same legitimate interest in abuse prevention set out in clause 23.
 
 If a match causes your report not to corroborate another, that affects the report's visibility, not your account standing, and you may raise it with us. If a match contributes to a decision to suspend your account, clause 13.2 applies and you can respond before it takes effect.
 
@@ -518,7 +534,7 @@ A stated retention period with nothing enforcing it is a misrepresentation, so t
 | OCR-derived fields on verification history | **12 months**, then stripped from the record | ✅ Scheduled purge |
 | IP addresses stored with a consent record | **24 months**, then cleared | ✅ Scheduled purge |
 | Driver-record access logs | **90 days**, then deleted | ✅ Scheduled purge |
-| Account data | Until you close your account, then deleted or de-identified within **30 days** | ⚠️ Not yet automated — on request |
+| Account data | Until you delete your account, then deleted **immediately** | ✅ Self-service, immediate (clause 4.5) |
 | Pending reports not corroborated | **24 months**, then deleted — retained this long only so a later independent report can corroborate them | ⚠️ Not yet automated |
 | Rejected reports | **6 months** (to detect repeat malicious reporting), then deleted | ⚠️ Not yet automated |
 | Corroborated reports | **36 months** from the incident date, then deleted, unless the subject of an active dispute | ⚠️ Not yet automated |
@@ -530,7 +546,7 @@ The periods marked ⚠️ are our policy, and we will honour them on request tod
 
 29.1 The enforced periods are configurable and are applied by a worker that runs several times a day. Each pass records what it purged, so we can show the periods were actually applied rather than merely published.
 
-29.2 Closing your account does not automatically delete reports you submitted, because those reports concern other people and may be the subject of a driver's dispute. We de-identify them: they stop being linked to you and become an anonymous historical record, unless we are required to preserve the link.
+29.2 Deleting your account does not delete reports you submitted, because those reports concern other people and may be the subject of a driver's dispute. We de-identify them as part of the deletion itself: the link to your account is removed there and then, and they become an anonymous historical record. The description stays, because a driver appealing under Part C is entitled to have the substance of the allegation reviewed; what goes is any way of tying it back to you.
 
 29.3 We delete or de-identify when the period expires. Deletion from the live database is real deletion. Backups are a separate matter: a deleted record may persist in a backup until that backup ages out, and we cannot state that rotation period until the backup configuration in clause 27.4 is settled (`TBD: BACKUP_ROTATION_DAYS`). We do not restore a backup to recover data a person has asked us to delete.
 

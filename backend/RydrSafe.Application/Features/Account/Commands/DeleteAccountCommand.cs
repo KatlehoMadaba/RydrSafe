@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using RydrSafe.Application.Common.Exceptions;
 using RydrSafe.Application.Common.Interfaces;
 using RydrSafe.Application.DTOs;
 
@@ -39,8 +40,10 @@ public class DeleteAccountCommandHandler(
         var user = await userRepository.GetByIdAsync(request.UserId)
             ?? throw new UnauthorizedAccessException("User not found.");
 
+        // 400, not 401: a mistyped confirmation password must not sign the user out mid-dialog.
         if (!passwordHasher.Verify(request.Password, user.PasswordHash))
-            throw new UnauthorizedAccessException("That password is incorrect. Your account has not been deleted.");
+            throw new CredentialConfirmationException(
+                "That password is incorrect. Your account has not been deleted.");
 
         var email = user.Email;
 

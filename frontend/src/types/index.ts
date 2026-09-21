@@ -88,9 +88,15 @@ export interface Report {
   driverId: string
   /** Flattened by the API (ReportDto), which sends a name string rather than a nested driver object. */
   driverName: string
-  userId: string
-  /** Likewise flattened — the reporter's full name, not a nested user object. */
+  /** Null once the reporter has deleted their account — the report survives, unlinked (clause 29.2). */
+  userId: string | null
+  /** Likewise flattened — the reporter's full name, or 'Deleted account'. */
   reporterName: string
+  /**
+   * Clause 6.4 — the reporter asked not to be named. Moderators still see `reporterName`, since
+   * clause 37 abuse handling depends on it; the queue marks the request instead of hiding it.
+   */
+  isAnonymous: boolean
   category: ReportCategory
   classification: ReportClassification
   severity: ReportSeverity

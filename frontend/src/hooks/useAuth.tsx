@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { User, UserRole } from '@/types'
 import { authApi } from '@/api/auth'
-import type { RegisterRequest } from '@/api/auth'
+import type { AuthResponse, RegisterRequest } from '@/api/auth'
 
 interface AuthContextValue {
   user: User | null
@@ -9,6 +9,10 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>
   register: (data: RegisterRequest) => Promise<void>
   logout: () => void
+  /** Merge a saved profile change into the session without a round trip. */
+  applyProfile: (patch: Partial<Pick<User, 'fullName' | 'email'>>) => void
+  /** Adopt a token pair the server handed back, e.g. after a password change. */
+  applySession: (data: AuthResponse) => void
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -79,14 +83,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = () => {
+    // Revoke server-side first, while the token is still there to authenticate with. The local
+    // session is cleared either way — a user who wants out should not be held in by a failed
+    // network call — but without this the refresh token stays valid after "sign out".
+    const token = localStorage.getItem('token')
+    if (token) void authApi.logout(token).catch(() => {})
+
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
     setUser(null)
   }
 
+  const applyProfile = (patch: Partial<Pick<User, 'fullName' | 'email'>>) => {
+    setUser((current) => {
+      if (!current) return current
+      const next = { ...current, ...patch }
+      localStorage.setItem('user', JSON.stringify(next))
+      return next
+    })
+  }
+
+  const applySession = (data: AuthResponse) => {
+    const me = buildUser(data)
+    localStorage.setItem('token', data.accessToken)
+    localStorage.setItem('refreshToken', data.refreshToken)
+    // createdAt is not in the auth payload, so keep the one already on the session rather than
+    // stamping "now" over a real join date.
+    setUser((current) => {
+      const next = current ? { ...me, createdAt: current.createdAt } : me
+      localStorage.setItem('user', JSON.stringify(next))
+      return next
+    })
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, login, register, logout, applyProfile, applySession }}
+    >
       {children}
     </AuthContext.Provider>
   )

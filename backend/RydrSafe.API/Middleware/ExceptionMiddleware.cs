@@ -44,6 +44,7 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
             RateLimitedException => (HttpStatusCode.TooManyRequests, ex.Message),
             CategoryAProcessingDisabledException => (HttpStatusCode.ServiceUnavailable, ex.Message),
             InvalidStateTransitionException => (HttpStatusCode.Conflict, ex.Message),
+            CredentialConfirmationException => (HttpStatusCode.BadRequest, ex.Message),
             InvalidOperationException => (HttpStatusCode.BadRequest, ex.Message),
             _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
         };

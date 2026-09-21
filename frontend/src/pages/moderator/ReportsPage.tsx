@@ -10,7 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
-import { CheckCircle, XCircle, ShieldAlert, Lock } from 'lucide-react'
+import { CheckCircle, XCircle, ShieldAlert, Lock, EyeOff } from 'lucide-react'
 import type { ReportStatus } from '@/types'
 
 const severityVariant = {
@@ -193,10 +193,20 @@ export function ModeratorReportsPage() {
                   </Badge>
                 )}
                 {report.reportedToPolice && <Badge variant="destructive">Police-reported</Badge>}
+
+                {/* Clause 6.4. The name is still shown below — clause 37 abuse handling needs
+                    it — but the reporter asked not to be named, and that is on the record. */}
+                {report.isAnonymous && (
+                  <Badge variant="secondary" className="gap-1">
+                    <EyeOff className="h-3 w-3" />Anonymity requested
+                  </Badge>
+                )}
               </div>
 
               <p className="text-sm text-gray-500 mb-2">
-                Incident: {new Date(report.incidentDate).toLocaleDateString()} · Reported:{' '}
+                Reporter: {report.reporterName || '—'}
+                {report.isAnonymous && ' (withheld from other users at their request)'} · Incident:{' '}
+                {new Date(report.incidentDate).toLocaleDateString()} · Reported:{' '}
                 {new Date(report.createdAt).toLocaleDateString()}
                 {report.officialReference && (
                   <>

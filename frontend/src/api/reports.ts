@@ -21,6 +21,8 @@ export interface CreateReportRequest {
   officialReference?: string
   /** Hashed server-side; used only for the clause 6.3(a) independence check. */
   deviceFingerprint?: string
+  /** Clause 6.4 — withhold the reporter's name from the moderation queue. */
+  isAnonymous?: boolean
 }
 
 /**

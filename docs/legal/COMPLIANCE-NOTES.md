@@ -28,6 +28,10 @@ These were the original B1–B12 blockers. They are implemented and the agreemen
 | B10 | **Age gate.** Date of birth captured and validated server-side. | `RegisterCommandValidator.cs` |
 | B11 | **Image handling.** Images never reach disk or database; SHA-256 retained for duplicate detection; the discard is timestamped. | `OcrService.cs` |
 | B12 | **Retention jobs.** A scheduled worker enforces the periods it can. | `RetentionWorker.cs` |
+| B13 | **Self-service account deletion.** Immediate, password-confirmed, and it de-identifies the reporter's reports in the same operation rather than promising to later. The reporter FK is deliberately `Restrict`, so a report can never be silently cascaded away with its author. | `DeleteAccountCommand.cs`, `ReportRepository.DeIdentifyByUserAsync` |
+| B14 | **Pseudonymous reporter key.** A salted hash of the account id, written at submission, so the clause 6.3(a) independence test survives account deletion. Without it two reports from one closed account would both carry a null reporter and could corroborate each other. | `CreateReportCommand.cs`, `CorroborationPolicy.AreIndependent` |
+| B15 | **Anonymity option on reports.** Recorded as a request and surfaced to the moderator, without severing the account link that clauses 6.2, 6.3(a) and 37 all depend on. Clause 6.4 says exactly that rather than overselling it. | `Report.IsAnonymous`, `ReportDriverPage.tsx` |
+| B16 | **Server-side sign-out.** Clearing local storage left the stored refresh token valid; `POST /api/auth/logout` revokes it. A password change rotates it too, which signs out every other session. | `LogoutCommand.cs`, `ChangePasswordCommand.cs` |
 
 Two things changed behaviour for existing data, and the migration handles both: reports previously marked `Escalated` return to `Pending`, and every driver's risk score and status reset to zero/`Safe`, because the old scores were computed from uncorroborated reports.
 
@@ -35,7 +39,9 @@ Two things changed behaviour for existing data, and the migration handles both: 
 
 | # | Item | Why it matters |
 |---|---|---|
-| C1 | **Account-data retention is not automated.** Clause 29 marks these rows ⚠️. Closure, report expiry, audit-log expiry and consent expiry are honoured on request but not by a job. | A stated period with no job behind it is a misrepresentation. |
+| C1 | **Report, audit-log and consent retention are not automated.** Clause 29 marks these rows ⚠️. Account closure is now immediate and self-service (B13), so that row is closed; report expiry, audit-log expiry and consent expiry are still honoured on request rather than by a job. | A stated period with no job behind it is a misrepresentation. |
+| C7 | **Deleting an account erases its consent records.** Clause 29 says consent rows are kept for the account's duration plus 3 years, but B13 removes them with the account, since they are personal data the user has asked us to erase. The two statements do not agree. Decide which wins: keep the s24 erasure and amend clause 29, or retain a de-identified consent row as ECTA s11 evidence. Erasure is the current behaviour. | Either the clause or the code is wrong; right now it is the clause. |
+| C8 | **An account can delete itself even if it is the last administrator.** Nothing checks the role before deletion. | A deployment could be left with no admin and no route to appoint one. |
 | C2 | **No legal-hold flag.** Clause 29 promises records under legal hold are exempt from purging. Nothing marks a record as held. | The retention worker would purge evidence in a live dispute. |
 | C3 | **Identity verification on appeals is manual.** `DriverAppeal.IdentityVerified` exists but nothing enforces it before an appeal suspends a status. | Anyone who knows a registration number can suspend that driver's status. Currently mitigated only by rate limiting. Decide whether that trade-off is acceptable — it favours the driver, which is the safer direction, but it is abusable. |
 | C4 | **Moderator confidentiality undertaking** is referenced in clauses 1.3 and 27.2 but does not exist as a document. |

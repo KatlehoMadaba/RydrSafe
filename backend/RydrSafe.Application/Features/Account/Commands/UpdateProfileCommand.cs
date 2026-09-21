@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using FluentValidation;
 using MediatR;
 using RydrSafe.Application.Common.Interfaces;
@@ -11,6 +12,11 @@ namespace RydrSafe.Application.Features.Account.Commands;
 /// </summary>
 public record UpdateProfileCommand(Guid UserId, string FullName, string Email) : IRequest<UserDto>;
 
+/// <summary>
+/// Registered, but nothing runs it yet — there is no MediatR validation behavior in the pipeline
+/// (issue #39). Until that lands, <see cref="UpdateProfileCommandHandler"/> enforces the same
+/// rules itself. Keep the two in step.
+/// </summary>
 public class UpdateProfileCommandValidator : AbstractValidator<UpdateProfileCommand>
 {
     public UpdateProfileCommandValidator()
@@ -25,17 +31,26 @@ public class UpdateProfileCommandHandler(IUserRepository userRepository)
 {
     public async Task<UserDto> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
     {
+        // Duplicated from the validator on purpose; see the note there.
+        var fullName = request.FullName?.Trim() ?? string.Empty;
+
+        if (fullName.Length < 2 || fullName.Length > 255)
+            throw new InvalidOperationException("Your full name must be between 2 and 255 characters.");
+
+        var email = request.Email?.Trim().ToLowerInvariant() ?? string.Empty;
+
+        if (!new EmailAddressAttribute().IsValid(email))
+            throw new InvalidOperationException("Enter a valid email address.");
+
         var user = await userRepository.GetByIdAsync(request.UserId)
             ?? throw new UnauthorizedAccessException("User not found.");
-
-        var email = request.Email.Trim().ToLowerInvariant();
 
         // The unique index would catch this anyway, but as a 500 rather than something the form
         // can show next to the field.
         if (email != user.Email && await userRepository.EmailTakenAsync(email, user.Id))
             throw new InvalidOperationException("That email address is already registered to another account.");
 
-        user.FullName = request.FullName.Trim();
+        user.FullName = fullName;
         user.Email = email;
         await userRepository.UpdateAsync(user);
 
