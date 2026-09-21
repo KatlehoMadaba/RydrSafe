@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Search, Flag, History, ShieldCheck, AlertTriangle, TrendingUp } from 'lucide-react'
+import { Search, Flag, History, ShieldCheck, AlertTriangle, TrendingUp, Users, ChevronRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { StatCard, StatCardGrid } from '@/components/dashboard/StatCard'
@@ -131,6 +131,19 @@ export function PassengerDashboardPage() {
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <Link to="/passenger/community-reports" className="flex items-center gap-3 p-4">
+          <Users className="h-4 w-4 text-subtle" />
+          <div className="min-w-0 flex-1">
+            <span className="block text-sm font-medium text-foreground">Community reports</span>
+            <span className="block text-xs text-muted-foreground">
+              See what other passengers have confirmed about a driver
+            </span>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0 text-subtle" />
+        </Link>
+      </Card>
 
       {/* Side by side: these are the two things a passenger has actually done, and reading them
           together is what shows whether a driver they checked is one they went on to report.

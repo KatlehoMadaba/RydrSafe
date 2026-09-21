@@ -16,6 +16,7 @@ import { RegisterPage } from '@/pages/public/RegisterPage'
 import { UnauthorizedPage } from '@/pages/public/UnauthorizedPage'
 import { DriverRightsPage } from '@/pages/public/DriverRightsPage'
 import { LegalPage } from '@/pages/public/LegalPage'
+import { CommunityReportsPage } from '@/pages/passenger/CommunityReportsPage'
 
 import { PassengerDashboardPage } from '@/pages/passenger/DashboardPage'
 import { VerifyDriverPage } from '@/pages/passenger/VerifyDriverPage'
@@ -81,6 +82,8 @@ export default function App() {
                   <Route path="/passenger/verify" element={<VerifyDriverPage />} />
                   <Route path="/passenger/report" element={<ReportDriverPage />} />
                   <Route path="/passenger/history" element={<HistoryPage />} />
+                  {/* Issue #43. Clause 6.4 — corroborated counts and bands only. */}
+                  <Route path="/passenger/community-reports" element={<CommunityReportsPage />} />
                   <Route path="/passenger/recommendations" element={<RecommendationsPage />} />
                   <Route path="/passenger/profile" element={<ProfilePage />} />
                   <Route path="/passenger/alerts" element={<NotificationsPage />} />
