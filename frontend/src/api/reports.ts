@@ -23,6 +23,11 @@ export interface CreateReportRequest {
   deviceFingerprint?: string
   /** Clause 6.4 — withhold the reporter's name from the moderation queue. */
   isAnonymous?: boolean
+  /**
+   * How precisely the reporter could place the incident. Anything other than `Day` means
+   * `incidentDate` is the first instant of the period they named, not a date they claimed.
+   */
+  incidentDatePrecision?: 'Day' | 'Month' | 'Year'
 }
 
 /**

@@ -15,6 +15,7 @@ import { LoginPage } from '@/pages/public/LoginPage'
 import { RegisterPage } from '@/pages/public/RegisterPage'
 import { UnauthorizedPage } from '@/pages/public/UnauthorizedPage'
 import { DriverRightsPage } from '@/pages/public/DriverRightsPage'
+import { LegalPage } from '@/pages/public/LegalPage'
 
 import { PassengerDashboardPage } from '@/pages/passenger/DashboardPage'
 import { VerifyDriverPage } from '@/pages/passenger/VerifyDriverPage'
@@ -67,6 +68,9 @@ export default function App() {
                 <Route path="/register" element={<RegisterPage />} />
                 {/* Part C. Drivers are not users of RydrSafe, so this is deliberately public. */}
                 <Route path="/driver-rights" element={<DriverRightsPage />} />
+                {/* The register form links here. Without this route the catch-all below sent
+                    people to /login, losing everything they had typed. */}
+                <Route path="/legal/user-agreement" element={<LegalPage />} />
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
               </Route>
 

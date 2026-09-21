@@ -42,6 +42,7 @@ public class GetReportByIdQueryHandler(
         r.Severity.ToString(),
         r.Description,
         r.IncidentDate,
+        r.IncidentDatePrecision.ToString(),
         r.ReportedToPolice,
         r.Status.ToString(),
         r.CorroborationPath.ToString(),

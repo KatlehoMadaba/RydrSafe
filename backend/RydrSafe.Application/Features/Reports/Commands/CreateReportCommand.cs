@@ -20,7 +20,9 @@ public record CreateReportCommand(
     string? OfficialReference = null,
     string? DeviceFingerprint = null,
     string? IpAddress = null,
-    bool IsAnonymous = false) : IRequest<Guid>;
+    bool IsAnonymous = false,
+    IncidentDatePrecision IncidentDatePrecision = Domain.Enums.IncidentDatePrecision.Day)
+    : IRequest<Guid>;
 
 public class CreateReportCommandValidator : AbstractValidator<CreateReportCommand>
 {
@@ -87,6 +89,7 @@ public class CreateReportCommandHandler(
             Severity = Enum.Parse<ReportSeverity>(request.Severity),
             Description = request.Description,
             IncidentDate = DateTime.SpecifyKind(request.IncidentDate, DateTimeKind.Utc),
+            IncidentDatePrecision = request.IncidentDatePrecision,
             ReportedToPolice = request.ReportedToPolice,
             OfficialReference = string.IsNullOrWhiteSpace(request.OfficialReference)
                 ? null

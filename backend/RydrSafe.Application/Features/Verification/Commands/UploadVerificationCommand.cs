@@ -82,11 +82,18 @@ public class UploadVerificationCommandHandler(
 
             return new VerificationResponse(
                 ocr.DriverName, ocr.RegistrationNumber, ocr.PhoneNumber,
-                "Safe", 0, 0, false, null);
+                "Safe", 0, 0, 0, null, false, null);
         }
 
         // Clause 6.2 and 6.4: only corroborated reports are visible or count towards standing.
         var reportCount = await reportRepository.CountCorroboratedByDriverIdAsync(matchedDriver.Id);
+
+        // Clause 6.2 keeps these out of the score and the status band; showing the count is what
+        // stops a driver with unread reports being presented to a passenger as simply "Safe".
+        var pendingReportCount = await reportRepository.CountPendingByDriverIdAsync(matchedDriver.Id);
+        var pendingHighestSeverity = pendingReportCount > 0
+            ? (await reportRepository.GetHighestPendingSeverityByDriverIdAsync(matchedDriver.Id))?.ToString()
+            : null;
         var riskScore = await riskScoringService.CalculateAsync(matchedDriver.Id);
 
         // Clause 7.3 / 35.4: the status shown is the one a moderator set, suppressed while an
@@ -108,6 +115,8 @@ public class UploadVerificationCommandHandler(
             status.ToString(),
             riskScore,
             reportCount,
+            pendingReportCount,
+            pendingHighestSeverity,
             true,
             matchedDriver.Id);
     }

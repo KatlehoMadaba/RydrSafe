@@ -20,12 +20,23 @@ public class ReportsController(IMediator mediator) : ControllerBase
     {
         var userId = GetUserId();
 
+        // An unparseable value must not silently become an exact date — that would turn "some
+        // time in 2026" into a specific day nobody claimed.
+        if (!Enum.TryParse<IncidentDatePrecision>(
+                string.IsNullOrWhiteSpace(request.IncidentDatePrecision)
+                    ? nameof(IncidentDatePrecision.Day)
+                    : request.IncidentDatePrecision,
+                ignoreCase: true,
+                out var precision))
+            return BadRequest(new { error = "IncidentDatePrecision must be Day, Month or Year." });
+
         var id = await mediator.Send(new CreateReportCommand(
             request.DriverName, request.RegistrationNumber, userId,
             request.Category, request.Severity, request.Description, request.IncidentDate,
             request.ReportedToPolice, request.OfficialReference, request.DeviceFingerprint,
             HttpContext.Connection.RemoteIpAddress?.ToString(),
-            request.IsAnonymous));
+            request.IsAnonymous,
+            precision));
 
         return CreatedAtAction(nameof(GetById), new { id }, new { id });
     }

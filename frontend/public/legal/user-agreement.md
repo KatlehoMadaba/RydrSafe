@@ -144,6 +144,12 @@ Where a report is published, other users see only:
 
 Other users **never** see the free-text description you wrote, your name, your account, or any detail that would identify you or the specific trip. We do not publish descriptions because a description is where defamatory detail lives.
 
+**Reports still awaiting review.** A verification also shows a **count of reports that have been filed but not yet checked by a moderator**, labelled as such. Nothing else about them is shown — no category, no severity, no description, no date.
+
+We added this because the alternative was worse. Verification previously counted only corroborated reports, so a driver with unread reports against them was presented to a passenger as "Safe" — the platform stating the opposite of what it knew, in the one moment the answer matters. Disclosing that a report exists and has not been assessed is a statement about our review queue, not a finding about the driver.
+
+Accordingly, a pending report does **not** affect the driver's risk score or public status band. Only corroborated reports do (clauses 6.2 and 7.1). A driver who believes a pending report is malicious may raise it under clause 35 before it is ever assessed.
+
 **Reporting anonymously.** The report form offers an anonymity option, and it is worth being precise about what it does, because "anonymous" is a word platforms routinely oversell.
 
 Ticking it marks your report as one where you asked not to be named, and that request is shown to the moderator reviewing it. What it does **not** do is sever the report from your account in our database. It cannot, for three reasons:

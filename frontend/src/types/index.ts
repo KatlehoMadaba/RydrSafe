@@ -108,6 +108,8 @@ export interface Report {
   officialReferenceVerified: boolean
   corroboratedAt?: string | null
   incidentDate: string
+  /** `Month` or `Year` means `incidentDate` is the start of that period, not an exact date. */
+  incidentDatePrecision: 'Day' | 'Month' | 'Year'
   reportedToPolice: boolean
   createdAt: string
 }
@@ -210,7 +212,19 @@ export interface VerificationResult {
   vehicleModel?: string
   status: DriverStatus
   riskScore: number
+  /** Corroborated reports only — the ones that bear on the driver's public standing. */
   reportCount: number
+  /**
+   * Reports filed but not yet reviewed by a moderator. Disclosed so a driver with unread reports
+   * is not shown as simply "Safe", but excluded from `riskScore` and `status`: no finding has
+   * been made about them (clauses 6.2, 7.1).
+   */
+  pendingReportCount: number
+  /**
+   * Highest severity among those unreviewed reports, as chosen by the reporters themselves.
+   * Never assessed by RydrSafe — anything rendering it must say so.
+   */
+  pendingHighestSeverity?: ReportSeverity | null
   driverId?: string
   /** False when no driver record matched the lookup — distinct from a genuinely clean Safe record. */
   matchFound: boolean

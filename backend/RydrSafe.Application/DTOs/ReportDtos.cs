@@ -9,6 +9,13 @@ public record CreateReportRequest(
     DateTime IncidentDate,
     bool ReportedToPolice = false,
 
+    /// <summary>
+    /// "Day", "Month" or "Year" — how precisely the reporter could place the incident. Anything
+    /// coarser than Day means <c>IncidentDate</c> is the first instant of the period they named,
+    /// not a date they claimed.
+    /// </summary>
+    string? IncidentDatePrecision = null,
+
     /// <summary>Optional SAPS CAS/AR number. Clause 6.3(b) — a moderator must still verify it.</summary>
     string? OfficialReference = null,
 
@@ -53,6 +60,10 @@ public record ReportDto(
     string Severity,
     string Description,
     DateTime IncidentDate,
+
+    /// <summary>"Day", "Month" or "Year". Tells the UI how much of the date to render.</summary>
+    string IncidentDatePrecision,
+
     bool ReportedToPolice,
     string Status,
     string CorroborationPath,

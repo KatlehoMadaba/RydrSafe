@@ -48,6 +48,12 @@ public class Report
     public string Description { get; set; } = string.Empty;
 
     public DateTime IncidentDate { get; set; }
+
+    /// <summary>
+    /// How much of <see cref="IncidentDate"/> the reporter actually knew. Defaults to
+    /// <c>Day</c> so every report written before this existed keeps its original meaning.
+    /// </summary>
+    public IncidentDatePrecision IncidentDatePrecision { get; set; } = IncidentDatePrecision.Day;
     public bool ReportedToPolice { get; set; }
     public ReportStatus Status { get; set; } = ReportStatus.Pending;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

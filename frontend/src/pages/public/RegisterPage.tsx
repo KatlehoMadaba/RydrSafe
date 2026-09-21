@@ -232,9 +232,16 @@ export function RegisterPage() {
             <p className="text-sm font-medium text-foreground">Before you continue</p>
             <p className="text-xs text-muted-foreground">
               Read the{' '}
-              <Link to="/legal/user-agreement" className="text-primary hover:underline">
+              {/* A plain anchor with target=_blank, not a Link: reading the terms should not
+                  navigate away from a half-filled sign-up form and discard it. */}
+              <a
+                href="/legal/user-agreement"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-primary hover:underline"
+              >
                 RydrSafe User Agreement
-              </Link>
+              </a>
               . Each item below is recorded separately against your account.
             </p>
 

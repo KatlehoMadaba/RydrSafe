@@ -1,4 +1,5 @@
 using RydrSafe.Domain.Entities;
+using RydrSafe.Domain.Enums;
 
 namespace RydrSafe.Application.Common.Interfaces;
 
@@ -20,6 +21,25 @@ public interface IReportRepository
     /// <c>Corroborated</c> reports do.
     /// </summary>
     Task<int> CountCorroboratedByDriverIdAsync(Guid driverId);
+
+    /// <summary>
+    /// Reports filed against this driver that no moderator has looked at yet.
+    ///
+    /// Disclosed at verification so a passenger is not told "Safe" about a driver with unread
+    /// reports against them. It is deliberately <c>Pending</c> only: an <c>Approved</c> report
+    /// has been read and is being held back by the clause 6.3 threshold, and surfacing those
+    /// would route around the threshold itself.
+    /// </summary>
+    Task<int> CountPendingByDriverIdAsync(Guid driverId);
+
+    /// <summary>
+    /// The highest severity among this driver's unreviewed reports, or null where there are none.
+    ///
+    /// This is the severity the <em>reporter</em> selected. Nobody has assessed it, so anything
+    /// showing it must say so — it is one person's characterisation of their own complaint, not
+    /// a finding by RydrSafe.
+    /// </summary>
+    Task<ReportSeverity?> GetHighestPendingSeverityByDriverIdAsync(Guid driverId);
 
     /// <summary>Corroborated reports where the reporter indicated the incident went to the police.</summary>
     Task<bool> HasCorroboratedPoliceReportAsync(Guid driverId);

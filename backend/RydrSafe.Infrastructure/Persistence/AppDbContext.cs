@@ -74,6 +74,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(r => r.Status).HasConversion<string>();
             e.Property(r => r.Classification).HasConversion<string>();
             e.Property(r => r.CorroborationPath).HasConversion<string>();
+            e.Property(r => r.IncidentDatePrecision).HasConversion<string>();
             e.Property(r => r.Description).IsRequired();
             e.Property(r => r.OfficialReference).HasMaxLength(100);
             e.Property(r => r.PublicRecordSourceType).HasMaxLength(50);

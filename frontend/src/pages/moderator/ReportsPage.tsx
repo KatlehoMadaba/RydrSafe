@@ -13,6 +13,18 @@ import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { CheckCircle, XCircle, ShieldAlert, Lock, EyeOff } from 'lucide-react'
 import type { ReportStatus } from '@/types'
 
+/**
+ * A report placed only in a month or a year is stored as the first instant of that period. Showing
+ * "1 Jan 2026" for "some time in 2026" would hand a moderator a precision the reporter never gave.
+ */
+function formatIncidentDate(iso: string, precision: 'Day' | 'Month' | 'Year' | undefined) {
+  const d = new Date(iso)
+  if (precision === 'Year') return `${d.getUTCFullYear()} (year only)`
+  if (precision === 'Month')
+    return `${d.toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' })} (month only)`
+  return d.toLocaleDateString()
+}
+
 const severityVariant = {
   Low: 'success' as const,
   Medium: 'warning' as const,
@@ -206,7 +218,7 @@ export function ModeratorReportsPage() {
               <p className="text-sm text-gray-500 mb-2">
                 Reporter: {report.reporterName || '—'}
                 {report.isAnonymous && ' (withheld from other users at their request)'} · Incident:{' '}
-                {new Date(report.incidentDate).toLocaleDateString()} · Reported:{' '}
+                {formatIncidentDate(report.incidentDate, report.incidentDatePrecision)} · Reported:{' '}
                 {new Date(report.createdAt).toLocaleDateString()}
                 {report.officialReference && (
                   <>

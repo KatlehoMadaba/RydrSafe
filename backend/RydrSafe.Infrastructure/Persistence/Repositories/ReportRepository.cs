@@ -41,6 +41,23 @@ public class ReportRepository(AppDbContext db) : IReportRepository
     public async Task<int> CountCorroboratedByDriverIdAsync(Guid driverId) =>
         await db.Reports.CountAsync(r => r.DriverId == driverId && r.Status == ReportStatus.Corroborated);
 
+    public async Task<int> CountPendingByDriverIdAsync(Guid driverId) =>
+        await db.Reports.CountAsync(r => r.DriverId == driverId && r.Status == ReportStatus.Pending);
+
+    /// <summary>
+    /// Ordered in memory, not in SQL: severity is persisted as its name, so the database would
+    /// sort it alphabetically — "Critical" before "Low" by luck, "High" before "Medium" wrongly.
+    /// </summary>
+    public async Task<ReportSeverity?> GetHighestPendingSeverityByDriverIdAsync(Guid driverId)
+    {
+        var severities = await db.Reports
+            .Where(r => r.DriverId == driverId && r.Status == ReportStatus.Pending)
+            .Select(r => r.Severity)
+            .ToListAsync();
+
+        return severities.Count == 0 ? null : severities.Max();
+    }
+
     public async Task<bool> HasCorroboratedPoliceReportAsync(Guid driverId) =>
         await db.Reports.AnyAsync(r =>
             r.DriverId == driverId && r.ReportedToPolice && r.Status == ReportStatus.Corroborated);

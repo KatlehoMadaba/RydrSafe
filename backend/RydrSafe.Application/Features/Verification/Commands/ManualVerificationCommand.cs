@@ -68,10 +68,17 @@ public class ManualVerificationCommandHandler(
 
             return new VerificationResponse(
                 request.DriverName, request.RegistrationNumber, request.PhoneNumber,
-                "Safe", 0, 0, false, null);
+                "Safe", 0, 0, 0, null, false, null);
         }
 
         var reportCount = await reportRepository.CountCorroboratedByDriverIdAsync(matchedDriver.Id);
+
+        // Clause 6.2 keeps these out of the score and the status band; showing the count is what
+        // stops a driver with unread reports being presented to a passenger as simply "Safe".
+        var pendingReportCount = await reportRepository.CountPendingByDriverIdAsync(matchedDriver.Id);
+        var pendingHighestSeverity = pendingReportCount > 0
+            ? (await reportRepository.GetHighestPendingSeverityByDriverIdAsync(matchedDriver.Id))?.ToString()
+            : null;
         var riskScore = await riskScoringService.CalculateAsync(matchedDriver.Id);
 
         // Clause 7.3. A verification is a read. It reports the status a moderator set — it does
@@ -132,6 +139,8 @@ public class ManualVerificationCommandHandler(
             status.ToString(),
             riskScore,
             reportCount,
+            pendingReportCount,
+            pendingHighestSeverity,
             true,
             matchedDriver.Id);
     }

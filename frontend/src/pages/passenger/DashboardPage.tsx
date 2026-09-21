@@ -6,8 +6,31 @@ import { Button } from '@/components/ui/button'
 import { StatCard, StatCardGrid } from '@/components/dashboard/StatCard'
 import { useAuth } from '@/hooks/useAuth'
 import { verificationApi } from '@/api/verification'
+import { reportsApi } from '@/api/reports'
 import { followApi } from '@/api/follow'
 import { RiskBadge } from '@/components/RiskBadge'
+import { Badge } from '@/components/ui/badge'
+
+/** Matches the moderator queue, so one severity reads the same colour everywhere. */
+const severityVariant: Record<string, 'success' | 'warning' | 'destructive'> = {
+  Low: 'success',
+  Medium: 'warning',
+  High: 'destructive',
+  Critical: 'destructive',
+}
+
+/**
+ * Clause 6.2 in words a reporter can act on. "Pending" and "Corroborated" are our internal
+ * pipeline names; what the person who filed it wants to know is whether anything has happened
+ * to it yet and whether anyone else can see it.
+ */
+const reportStatusLabel: Record<string, string> = {
+  Pending: 'Reported — awaiting moderator review',
+  Approved: 'Reviewed — not yet shown to others',
+  Corroborated: 'Confirmed — visible to other users',
+  Rejected: 'Reviewed — not upheld',
+  Withdrawn: 'Withdrawn by you',
+}
 
 export function PassengerDashboardPage() {
   const { user } = useAuth()
@@ -15,6 +38,11 @@ export function PassengerDashboardPage() {
   const { data: recentHistory } = useQuery({
     queryKey: ['verification-history-recent'],
     queryFn: () => verificationApi.getHistory({ pageSize: 5 }),
+  })
+
+  const { data: myReports } = useQuery({
+    queryKey: ['my-reports-recent'],
+    queryFn: () => reportsApi.getMine(),
   })
 
   const { data: followedDrivers } = useQuery({
@@ -104,7 +132,10 @@ export function PassengerDashboardPage() {
         </Card>
       )}
 
-      {recentHistory && recentHistory.items.length > 0 && (
+      {/* Side by side: these are the two things a passenger has actually done, and reading them
+          together is what shows whether a driver they checked is one they went on to report.
+          Each collapses to full width on a phone. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-base">Recent Verifications</CardTitle>
@@ -115,20 +146,61 @@ export function PassengerDashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {recentHistory.items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                  <div>
-                    <p className="font-medium text-sm text-foreground">{item.driverName}</p>
-                    <p className="text-xs text-muted-foreground">{item.registrationNumber}</p>
+            {recentHistory && recentHistory.items.length > 0 ? (
+              <div className="space-y-3">
+                {recentHistory.items.slice(0, 5).map((item) => (
+                  <div key={item.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm text-foreground truncate">{item.driverName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{item.registrationNumber}</p>
+                    </div>
+                    <RiskBadge state={item.status} />
                   </div>
-                  <RiskBadge state={item.status} />
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                You have not verified a driver yet.
+              </p>
+            )}
           </CardContent>
         </Card>
-      )}
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Your Reports</CardTitle>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/passenger/report">
+                Report a driver <Flag className="ml-1 h-3 w-3" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {myReports && myReports.length > 0 ? (
+              <div className="space-y-3">
+                {myReports.slice(0, 5).map((report) => (
+                  <div key={report.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm text-foreground truncate">{report.driverName}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {reportStatusLabel[report.status] ?? report.status}
+                        {report.isAnonymous && ' · anonymous'}
+                      </p>
+                    </div>
+                    <Badge variant={severityVariant[report.severity] ?? 'secondary'}>
+                      {report.severity}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                You have not reported a driver yet.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

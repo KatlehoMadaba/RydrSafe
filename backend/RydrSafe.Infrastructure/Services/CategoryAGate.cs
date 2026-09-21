@@ -37,10 +37,21 @@ public class CategoryAGate(IConfiguration config) : ICategoryAGate
         }
     }
 
+    /// <summary>
+    /// Written for the person staring at a greyed-out dropdown, not for a lawyer.
+    ///
+    /// The previous wording claimed "we have applied to the Information Regulator". That
+    /// application has not been made — COMPLIANCE-NOTES section 3 still has it unchecked — so the
+    /// notice was telling users something untrue about the platform's legal position. Saying
+    /// plainly that permission has not been obtained is both accurate and the stronger signal.
+    /// </summary>
     private const string DefaultDisabledReason =
-        "RydrSafe is not currently accepting reports that allege criminal conduct. "
-           + "We have applied to the Information Regulator for prior authorisation under POPIA "
-           + "section 57(1)(b), and section 58(2) prevents us from processing these reports until "
-           + "that application is decided. Reports about vehicle safety and conduct are unaffected. "
-           + "If you are reporting a crime, please contact SAPS on 10111.";
+        "Some report types are switched off at the moment. Anything that accuses a driver of a "
+           + "crime — assault, theft, fraud, harassment, reckless or drunk driving — counts as "
+           + "special personal information under POPIA, and we need written permission from the "
+           + "Information Regulator before we are allowed to collect it. We do not have that "
+           + "permission yet, so we will not take those reports, even to store them. "
+           + "You can still report an unsafe vehicle. "
+           + "If a crime has been committed, please report it to SAPS on 10111 — they can act on "
+           + "it and we cannot.";
 }
