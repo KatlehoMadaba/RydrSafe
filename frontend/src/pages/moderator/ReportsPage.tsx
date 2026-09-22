@@ -1,15 +1,29 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { reportsApi } from '@/api/reports'
+import { reportsApi, type ModerationDecision } from '@/api/reports'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
-import { ErrorState } from '@/components/ErrorState'
-import { CheckCircle, XCircle, ArrowUpCircle, FileText } from 'lucide-react'
+import { CheckCircle, XCircle, ShieldAlert, Lock, EyeOff } from 'lucide-react'
+import type { ReportStatus } from '@/types'
+
+/**
+ * A report placed only in a month or a year is stored as the first instant of that period. Showing
+ * "1 Jan 2026" for "some time in 2026" would hand a moderator a precision the reporter never gave.
+ */
+function formatIncidentDate(iso: string, precision: 'Day' | 'Month' | 'Year' | undefined) {
+  const d = new Date(iso)
+  if (precision === 'Year') return `${d.getUTCFullYear()} (year only)`
+  if (precision === 'Month')
+    return `${d.toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' })} (month only)`
+  return d.toLocaleDateString()
+}
 
 const severityVariant = {
   Low: 'success' as const,
@@ -18,166 +32,222 @@ const severityVariant = {
   Critical: 'destructive' as const,
 }
 
+const statusVariant: Record<ReportStatus, 'warning' | 'success' | 'destructive' | 'secondary'> = {
+  Pending: 'warning',
+  Approved: 'success',
+  Corroborated: 'destructive',
+  Rejected: 'secondary',
+  Withdrawn: 'secondary',
+}
+
+/**
+ * Clause 7.3(c) and POPIA s71(2): a decision needs a reason and a record of what was reviewed.
+ * The API rejects anything less, so the form collects both rather than letting a moderator
+ * click through and hit an error.
+ */
+function DecisionPanel({
+  onDecide,
+  isPending,
+}: {
+  onDecide: (decision: ModerationDecision, action: 'approve' | 'reject') => void
+  isPending: boolean
+}) {
+  const [reason, setReason] = useState('')
+  const [reviewedContent, setReviewedContent] = useState(false)
+  const [reviewedResponse, setReviewedResponse] = useState(false)
+  const [reviewedScore, setReviewedScore] = useState(false)
+
+  const reasonTooShort = reason.trim().length < 10
+  const blocked = reasonTooShort || !reviewedContent || isPending
+
+  const decide = (action: 'approve' | 'reject') =>
+    onDecide(
+      {
+        reason: reason.trim(),
+        reviewedReportContent: reviewedContent,
+        reviewedDriverResponse: reviewedResponse,
+        reviewedRiskScore: reviewedScore,
+      },
+      action,
+    )
+
+  return (
+    <div className="mt-4 space-y-3 rounded-md border border-gray-200 p-3">
+      <Textarea
+        placeholder="Reason for this decision (required, at least 10 characters). This is recorded against your account."
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        rows={2}
+      />
+
+      <div className="space-y-1 text-xs text-gray-600">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={reviewedContent}
+            onChange={(e) => setReviewedContent(e.target.checked)}
+          />
+          I read the report and any supporting material <span className="text-red-500">*</span>
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={reviewedResponse}
+            onChange={(e) => setReviewedResponse(e.target.checked)}
+          />
+          I considered the driver&apos;s response, where one exists
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={reviewedScore}
+            onChange={(e) => setReviewedScore(e.target.checked)}
+          />
+          I reviewed the risk score and how it was derived
+        </label>
+      </div>
+
+      <div className="flex gap-2">
+        <Button
+          size="sm" variant="outline" disabled={blocked}
+          className="text-green-600 border-green-300 hover:bg-green-50"
+          onClick={() => decide('approve')}
+        >
+          <CheckCircle className="h-3 w-3 mr-1" />Approve
+        </Button>
+        <Button
+          size="sm" variant="outline" disabled={blocked}
+          className="text-red-600 border-red-300 hover:bg-red-50"
+          onClick={() => decide('reject')}
+        >
+          <XCircle className="h-3 w-3 mr-1" />Reject
+        </Button>
+      </div>
+
+      <p className="text-xs text-gray-500">
+        Approving does not publish this report. A Category A report only becomes visible to other
+        users once the clause 6.3 corroboration threshold is met.
+      </p>
+    </div>
+  )
+}
+
 export function ModeratorReportsPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const qc = useQueryClient()
 
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['reports', statusFilter],
-    queryFn: () => reportsApi.getAll({ status: statusFilter === 'all' ? undefined : statusFilter, pageSize: 50 }),
+    queryFn: () =>
+      reportsApi.getAll({
+        status: statusFilter === 'all' ? undefined : statusFilter,
+        pageSize: 50,
+      }),
   })
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['reports'] })
-
-  const approve = useMutation({
-    mutationFn: reportsApi.approve,
-    onSuccess: () => {
-      toast.success('Report approved')
-      invalidate()
+  const decide = useMutation({
+    mutationFn: ({
+      id, decision, action,
+    }: { id: string; decision: ModerationDecision; action: 'approve' | 'reject' }) =>
+      action === 'approve'
+        ? reportsApi.approve(id, decision)
+        : reportsApi.reject(id, decision),
+    onSuccess: (_result, variables) => {
+      toast.success(variables.action === 'approve' ? 'Report approved' : 'Report rejected')
+      qc.invalidateQueries({ queryKey: ['reports'] })
     },
-    onError: () => toast.error('Could not approve report. Please try again.'),
-  })
-  const reject = useMutation({
-    mutationFn: (id: string) => reportsApi.reject(id),
-    onSuccess: () => {
-      toast.success('Report rejected')
-      invalidate()
+    onError: (error) => {
+      const message =
+        (error as { response?: { data?: { error?: string } } })?.response?.data?.error
+        ?? 'Could not record that decision.'
+      toast.error(message)
     },
-    onError: () => toast.error('Could not reject report. Please try again.'),
-  })
-  const escalate = useMutation({
-    mutationFn: reportsApi.escalate,
-    onSuccess: () => {
-      toast.success('Report escalated')
-      invalidate()
-    },
-    onError: () => toast.error('Could not escalate report. Please try again.'),
   })
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold text-foreground">Reports</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reports</h1>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="Approved">Approved</SelectItem>
+            <SelectItem value="Approved">Approved (private)</SelectItem>
+            <SelectItem value="Corroborated">Corroborated (public)</SelectItem>
             <SelectItem value="Rejected">Rejected</SelectItem>
-            <SelectItem value="Escalated">Escalated</SelectItem>
+            <SelectItem value="Withdrawn">Withdrawn</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {isLoading && <LoadingSpinner className="py-12" />}
-      {isError && <ErrorState message="Couldn't load reports." onRetry={() => refetch()} />}
 
-      {!isLoading && !isError && data?.items.length === 0 && (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <FileText className="h-10 w-10 text-subtle mx-auto mb-3" />
-            <p className="text-muted-foreground">No reports match this filter.</p>
-          </CardContent>
-        </Card>
-      )}
+      <div className="space-y-3">
+        {data?.items.map((report) => (
+          <Card key={report.id}>
+            <CardContent className="pt-4">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {report.category.replace(/([A-Z])/g, ' $1').trim()}
+                </span>
+                <Badge variant={severityVariant[report.severity]}>{report.severity}</Badge>
+                <Badge variant={statusVariant[report.status]}>{report.status}</Badge>
 
-      {!isLoading && !isError && data && data.items.length > 0 && (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Driver</TableHead>
-                  <TableHead>Report</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Dates</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.items.map((report) => {
-                  // One in-flight action locks the whole row — the three verdicts are
-                  // mutually exclusive, so a second click before the first settles is never intended.
-                  const rowBusy =
-                    (approve.isPending && approve.variables === report.id) ||
-                    (reject.isPending && reject.variables === report.id) ||
-                    (escalate.isPending && escalate.variables === report.id)
+                {report.classification === 'CategoryA' && (
+                  <Badge variant="destructive" className="gap-1">
+                    <ShieldAlert className="h-3 w-3" />Category A
+                  </Badge>
+                )}
+                {report.status === 'Approved' && (
+                  <Badge variant="secondary" className="gap-1">
+                    <Lock className="h-3 w-3" />Not public
+                  </Badge>
+                )}
+                {report.reportedToPolice && <Badge variant="destructive">Police-reported</Badge>}
 
-                  return (
-                  <TableRow key={report.id}>
-                    <TableCell>
-                      <span className="font-medium text-foreground">{report.driverName || '—'}</span>
-                    </TableCell>
-                    <TableCell className="whitespace-normal max-w-md">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className="font-semibold text-foreground">{report.category.replace(/([A-Z])/g, ' $1').trim()}</span>
-                        <Badge variant={severityVariant[report.severity]}>{report.severity}</Badge>
-                        {report.reportedToPolice && <Badge variant="destructive">Police-reported</Badge>}
-                      </div>
-                      <p className="text-sm text-muted-foreground">{report.description}</p>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={report.status === 'Pending' ? 'warning' : report.status === 'Approved' ? 'success' : 'secondary'}>
-                        {report.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="whitespace-normal text-xs text-muted-foreground">
-                      Incident: {new Date(report.incidentDate).toLocaleDateString()}
-                      <br />
-                      Reported: {new Date(report.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {report.status === 'Pending' ? (
-                        <div className="flex flex-col items-end gap-1.5">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-safe border-safe-muted hover:bg-safe-soft"
-                            isLoading={approve.isPending && approve.variables === report.id}
-                            disabled={rowBusy}
-                            onClick={() => approve.mutate(report.id)}
-                          >
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Approve
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-highrisk border-highrisk-muted hover:bg-highrisk-soft"
-                            isLoading={reject.isPending && reject.variables === report.id}
-                            disabled={rowBusy}
-                            onClick={() => reject.mutate(report.id)}
-                          >
-                            <XCircle className="h-3 w-3 mr-1" />
-                            Reject
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-flagged border-flagged-muted hover:bg-flagged-soft"
-                            isLoading={escalate.isPending && escalate.variables === report.id}
-                            disabled={rowBusy}
-                            onClick={() => escalate.mutate(report.id)}
-                          >
-                            <ArrowUpCircle className="h-3 w-3 mr-1" />
-                            Escalate
-                          </Button>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-subtle">—</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+                {/* Clause 6.4. The name is still shown below — clause 37 abuse handling needs
+                    it — but the reporter asked not to be named, and that is on the record. */}
+                {report.isAnonymous && (
+                  <Badge variant="secondary" className="gap-1">
+                    <EyeOff className="h-3 w-3" />Anonymity requested
+                  </Badge>
+                )}
+              </div>
+
+              <p className="text-sm text-gray-500 mb-2">
+                Reporter: {report.reporterName || '—'}
+                {report.isAnonymous && ' (withheld from other users at their request)'} · Incident:{' '}
+                {formatIncidentDate(report.incidentDate, report.incidentDatePrecision)} · Reported:{' '}
+                {new Date(report.createdAt).toLocaleDateString()}
+                {report.officialReference && (
+                  <>
+                    {' '}· Ref {report.officialReference}
+                    {report.officialReferenceVerified ? ' (verified)' : ' (unverified)'}
+                  </>
+                )}
+              </p>
+
+              <p className="text-sm text-gray-700 dark:text-gray-300">{report.description}</p>
+
+              {report.status === 'Corroborated' && (
+                <p className="mt-2 text-xs text-amber-700">
+                  Publicly visible via clause 6.3 ({report.corroborationPath}).
+                </p>
+              )}
+
+              {report.status === 'Pending' && (
+                <DecisionPanel
+                  isPending={decide.isPending}
+                  onDecide={(decision, action) =>
+                    decide.mutate({ id: report.id, decision, action })
+                  }
+                />
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   )
 }

@@ -3,7 +3,6 @@ using RydrSafe.Application.Common.Interfaces;
 using RydrSafe.Application.DTOs;
 using RydrSafe.Domain.Entities;
 using RydrSafe.Domain.Enums;
-using RydrSafe.Domain.Services;
 
 namespace RydrSafe.Application.Features.Verification.Commands;
 
@@ -21,7 +20,8 @@ public class ManualVerificationCommandHandler(
     IRealtimeNotificationService realtimeNotificationService,
     IVerificationHistoryRepository verificationHistoryRepository,
     IDriverFollowRepository driverFollowRepository,
-    INotificationRepository notificationRepository)
+    INotificationRepository notificationRepository,
+    IRetentionPolicy retentionPolicy)
     : IRequestHandler<ManualVerificationCommand, VerificationResponse>
 {
     public async Task<VerificationResponse> Handle(ManualVerificationCommand request, CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ public class ManualVerificationCommandHandler(
             throw new ArgumentException("At least one of registration number, driver name, or phone number must be provided.");
         }
 
-        Domain.Entities.Driver? matchedDriver = null;
+        Driver? matchedDriver = null;
 
         if (!string.IsNullOrWhiteSpace(request.RegistrationNumber))
         {
@@ -62,29 +62,33 @@ public class ManualVerificationCommandHandler(
                     RegistrationNumber = request.RegistrationNumber,
                     Status = "Safe",
                     RiskScore = 0,
+                    OcrDataRetainedUntil = retentionPolicy.VerificationOcrExpiry(DateTime.UtcNow)
                 });
             }
 
             return new VerificationResponse(
                 request.DriverName, request.RegistrationNumber, request.PhoneNumber,
-                "Safe", 0, 0, false, null);
+                "Safe", 0, 0, 0, null, false, null);
         }
 
-        var reportCount = await reportRepository.CountActiveByDriverIdAsync(matchedDriver.Id);
-        var riskScore = await riskScoringService.CalculateAsync(matchedDriver.Id);
-        var reportedToPolice = await reportRepository.HasPoliceReportAsync(matchedDriver.Id);
-        var status = DriverStatusPolicy.Evaluate(riskScore, reportCount, reportedToPolice);
+        var reportCount = await reportRepository.CountCorroboratedByDriverIdAsync(matchedDriver.Id);
 
-        // Anonymous verification is read-only: the recalculated status is returned to the caller but
-        // not persisted, so every stored status change stays attributable to an audited actor
-        // (a report, or an authenticated verification recorded in VerificationHistory below).
+        // Clause 6.2 keeps these out of the score and the status band; showing the count is what
+        // stops a driver with unread reports being presented to a passenger as simply "Safe".
+        var pendingReportCount = await reportRepository.CountPendingByDriverIdAsync(matchedDriver.Id);
+        var pendingHighestSeverity = pendingReportCount > 0
+            ? (await reportRepository.GetHighestPendingSeverityByDriverIdAsync(matchedDriver.Id))?.ToString()
+            : null;
+        var riskScore = await riskScoringService.CalculateAsync(matchedDriver.Id);
+
+        // Clause 7.3. A verification is a read. It reports the status a moderator set — it does
+        // not evaluate, and it does not write one. Previously this recomputed the status from the
+        // scoring policy and saved it, which meant looking a driver up could change their
+        // standing with no human in the loop, contrary to POPIA s71(2).
+        var status = matchedDriver.PublicStatus;
+
         if (request.UserId is Guid matchUserId)
         {
-            matchedDriver.RiskScore = riskScore;
-            matchedDriver.Status = status;
-            matchedDriver.UpdatedAt = DateTime.UtcNow;
-            await driverRepository.UpdateAsync(matchedDriver);
-
             await verificationHistoryRepository.AddAsync(new VerificationHistory
             {
                 UserId = matchUserId,
@@ -93,28 +97,38 @@ public class ManualVerificationCommandHandler(
                 RegistrationNumber = request.RegistrationNumber,
                 Status = status.ToString(),
                 RiskScore = riskScore,
+                OcrDataRetainedUntil = retentionPolicy.VerificationOcrExpiry(DateTime.UtcNow)
             });
         }
 
         if (status is DriverStatus.Flagged or DriverStatus.HighRisk)
         {
-            await realtimeNotificationService.NotifyModeratorsAsync(
-                "Flagged Driver Detected",
-                $"Driver {matchedDriver.DriverName} ({request.RegistrationNumber}) matched during manual verification. Risk score: {riskScore}.");
-
-            var followers = await driverFollowRepository.GetFollowersByDriverIdAsync(matchedDriver.Id);
-            var label = status == DriverStatus.HighRisk ? "High Risk" : "Flagged";
-            foreach (var follow in followers)
+            try
             {
+                await realtimeNotificationService.NotifyModeratorsAsync(
+                    "Flagged Driver Matched",
+                    $"Driver {matchedDriver.DriverName} matched during manual verification. Risk score: {riskScore}.");
+
+                var followers = await driverFollowRepository.GetFollowersByDriverIdAsync(matchedDriver.Id);
+                var label = status == DriverStatus.HighRisk ? "High Risk" : "Flagged";
+
                 var title = $"Driver Alert: {matchedDriver.DriverName}";
-                var message = $"A driver you are following ({matchedDriver.DriverName}) has been marked as {label} with a risk score of {riskScore}.";
-                await notificationRepository.AddAsync(new Notification
+                var message = $"A driver you are following ({matchedDriver.DriverName}) is currently marked as {label}.";
+
+                foreach (var follow in followers)
                 {
-                    UserId = follow.UserId,
-                    Title = title,
-                    Message = message,
-                });
-                await realtimeNotificationService.NotifyUserAsync(follow.UserId, title, message);
+                    await notificationRepository.AddAsync(new Notification
+                    {
+                        UserId = follow.UserId,
+                        Title = title,
+                        Message = message,
+                    });
+                    await realtimeNotificationService.NotifyUserAsync(follow.UserId, title, message);
+                }
+            }
+            catch
+            {
+                // A notification failure must not prevent the verification response being returned.
             }
         }
 
@@ -125,6 +139,8 @@ public class ManualVerificationCommandHandler(
             status.ToString(),
             riskScore,
             reportCount,
+            pendingReportCount,
+            pendingHighestSeverity,
             true,
             matchedDriver.Id);
     }

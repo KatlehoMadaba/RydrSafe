@@ -58,23 +58,121 @@ export type ReportCategory =
   | 'Other'
 
 export type ReportSeverity = 'Low' | 'Medium' | 'High' | 'Critical'
-export type ReportStatus = 'Pending' | 'Approved' | 'Rejected' | 'Escalated'
+
+/**
+ * Clause 6.2 publication stages. Only `Corroborated` is ever visible to users other than the
+ * reporter and the moderation team. `Escalated` is gone — it had no defined meaning and no
+ * effect on publication.
+ */
+export type ReportStatus =
+  | 'Pending'
+  | 'Approved'
+  | 'Corroborated'
+  | 'Rejected'
+  | 'Withdrawn'
+
+/** Clause 6.1. Category A alleges criminal conduct and is subject to the corroboration threshold. */
+export type ReportClassification = 'CategoryA' | 'CategoryB'
+
+/** Which limb of clause 6.3 carried a report to `Corroborated`. */
+export type CorroborationPath =
+  | 'None'
+  | 'IndependentReports'
+  | 'OfficialReference'
+  | 'PublicRecord'
+
+export type AppealStatus = 'Received' | 'UnderReview' | 'Upheld' | 'Dismissed' | 'Withdrawn'
 
 export interface Report {
   id: string
   driverId: string
   /** Flattened by the API (ReportDto), which sends a name string rather than a nested driver object. */
   driverName: string
-  userId: string
-  /** Likewise flattened — the reporter's full name, not a nested user object. */
+  /** Null once the reporter has deleted their account — the report survives, unlinked (clause 29.2). */
+  userId: string | null
+  /** Likewise flattened — the reporter's full name, or 'Deleted account'. */
   reporterName: string
+  /**
+   * Clause 6.4 — the reporter asked not to be named. Moderators still see `reporterName`, since
+   * clause 37 abuse handling depends on it; the queue marks the request instead of hiding it.
+   */
+  isAnonymous: boolean
   category: ReportCategory
+  classification: ReportClassification
   severity: ReportSeverity
+  /** Never returned to anyone but the reporter and moderators (clause 6.4). */
   description: string
   status: ReportStatus
+  corroborationPath: CorroborationPath
+  officialReference?: string | null
+  officialReferenceVerified: boolean
+  corroboratedAt?: string | null
   incidentDate: string
+  /** `Month` or `Year` means `incidentDate` is the start of that period, not an exact date. */
+  incidentDatePrecision: 'Day' | 'Month' | 'Year'
   reportedToPolice: boolean
   createdAt: string
+}
+
+/** Clause 6.4 — the only shape in which report data is shown to other users. */
+export interface PublicReportSummary {
+  category: ReportCategory
+  severityBand: ReportSeverity
+  corroboratedCount: number
+  earliestIncident?: string | null
+  latestIncident?: string | null
+}
+
+export interface ReportStatusAudit {
+  id: string
+  actorUserId: string
+  fromStatus: ReportStatus
+  toStatus: ReportStatus
+  reason: string
+  reviewedReportContent: boolean
+  reviewedDriverResponse: boolean
+  reviewedRiskScore: boolean
+  createdAt: string
+}
+
+export interface DriverSelfCheckResult {
+  recordExists: boolean
+  driverName?: string | null
+  publicStatus?: DriverStatus | null
+  corroboratedReportCount: number
+  summaries: PublicReportSummary[]
+  firstSeen?: string | null
+  message: string
+}
+
+export interface Appeal {
+  id: string
+  driverId: string
+  driverName: string
+  grounds: string
+  detail: string
+  contactEmail: string
+  status: AppealStatus
+  identityVerified: boolean
+  publicStatusSuspended: boolean
+  outcome?: string | null
+  createdAt: string
+  dueAt: string
+  resolvedAt?: string | null
+}
+
+/** Served by GET /api/platform/config — tells the client which categories are currently accepted. */
+export interface PlatformConfig {
+  agreementVersion: string
+  categoryAProcessingEnabled: boolean
+  categoryAPublicationEnabled: boolean
+  categoryADisabledReason: string | null
+  reportCategories: {
+    value: ReportCategory
+    classification: ReportClassification
+    available: boolean
+  }[]
+  requiredConsents: string[]
 }
 
 export interface Notification {
@@ -114,7 +212,19 @@ export interface VerificationResult {
   vehicleModel?: string
   status: DriverStatus
   riskScore: number
+  /** Corroborated reports only — the ones that bear on the driver's public standing. */
   reportCount: number
+  /**
+   * Reports filed but not yet reviewed by a moderator. Disclosed so a driver with unread reports
+   * is not shown as simply "Safe", but excluded from `riskScore` and `status`: no finding has
+   * been made about them (clauses 6.2, 7.1).
+   */
+  pendingReportCount: number
+  /**
+   * Highest severity among those unreviewed reports, as chosen by the reporters themselves.
+   * Never assessed by RydrSafe — anything rendering it must say so.
+   */
+  pendingHighestSeverity?: ReportSeverity | null
   driverId?: string
   /** False when no driver record matched the lookup — distinct from a genuinely clean Safe record. */
   matchFound: boolean

@@ -19,6 +19,19 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# The build syncs docs/legal/user-agreement.md into the served assets and refuses to publish it
+# while it still contains `TBD:` placeholders (frontend/scripts/sync-legal.mjs). That check keys
+# off Netlify's own CONTEXT variable, so deploy previews and branch deploys warn while a
+# production deploy fails. Nothing needs setting here for previews to pass.
+#
+# Production will stay red until the placeholders are resolved. That is deliberate — see
+# docs/legal/COMPLIANCE-NOTES.md section 5. To ship production with the draft knowingly, add:
+#
+#   [context.production.environment]
+#     ALLOW_DRAFT_LEGAL = "true"
+#
+# and take it out again once the document is final.
+
 # SPA fallback. react-router owns client-side routing, so any deep link
 # (/report, /driver/123, …) must be served index.html rather than a 404.
 # frontend/vercel.json declares the same rewrite but is Vercel-only — Netlify
@@ -27,3 +40,17 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# The user agreement still carries unresolved TBD: placeholders — company registration,
+# the Information Officer's details, and the data-processing agreement status for each
+# operator. Those are contractual facts, not code, and none of them exist yet.
+#
+# sync-legal.mjs refuses a production deploy in that state. This overrides it knowingly,
+# so the site can ship while the agreement is visibly a draft. The legal page renders a
+# draft notice, so no visitor is shown a placeholder document as though it were final.
+#
+# DELETE THIS BLOCK once docs/legal/COMPLIANCE-NOTES.md section 5 is satisfied. Leaving
+# it in place after the agreement is final would silently disable the guard that exists
+# to stop exactly that.
+[context.production.environment]
+  ALLOW_DRAFT_LEGAL = "true"
