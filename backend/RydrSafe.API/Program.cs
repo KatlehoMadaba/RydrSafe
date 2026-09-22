@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -146,7 +147,28 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(builder.Configuration["AllowedOrigins"]?.Split(',') ?? ["http://localhost:5173"])
+        var configured = (builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        // Netlify gives every pull request its own origin — deploy-preview-42--rydsafe,
+        // deploy-preview-43--rydsafe, and so on — so a fixed list goes stale the moment
+        // someone opens a PR, and the preview fails CORS for a reason unrelated to the code
+        // being reviewed. Match the pattern instead of enumerating it.
+        //
+        // The site slug is required in the pattern. Allowing *.netlify.app would trust every
+        // site on the platform, and anyone can create one; only we can create a subdomain
+        // ending in --<our site>.netlify.app.
+        var previewSite = builder.Configuration["NetlifyPreviewSite"];
+        var previewPattern = string.IsNullOrWhiteSpace(previewSite)
+            ? null
+            : new Regex(
+                $@"^https://[a-z0-9-]+--{Regex.Escape(previewSite)}\.netlify\.app$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
+                TimeSpan.FromMilliseconds(100));
+
+        policy.SetIsOriginAllowed(origin =>
+                  configured.Contains(origin, StringComparer.OrdinalIgnoreCase)
+                  || previewPattern?.IsMatch(origin) == true)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
