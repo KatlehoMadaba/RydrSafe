@@ -12,6 +12,9 @@ public class UserRepository(AppDbContext db) : IUserRepository
     public async Task<User?> GetByEmailAsync(string email) =>
         await db.Users.FirstOrDefaultAsync(u => u.Email == email.ToLowerInvariant());
 
+    public async Task<bool> EmailTakenAsync(string email, Guid excludeUserId) =>
+        await db.Users.AnyAsync(u => u.Email == email.ToLowerInvariant() && u.Id != excludeUserId);
+
     public async Task<IEnumerable<User>> GetAllAsync() =>
         await db.Users.ToListAsync();
 

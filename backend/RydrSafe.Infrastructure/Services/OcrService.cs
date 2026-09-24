@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -8,15 +9,40 @@ using RydrSafe.Application.Common.Interfaces;
 
 namespace RydrSafe.Infrastructure.Services;
 
-public class OcrService(IConfiguration config, HttpClient httpClient) : IOcrService
+public class OcrService(IConfiguration config, HttpClient httpClient, IHashingService hashingService) : IOcrService
 {
     private readonly string _apiKey = config["GoogleVision:ApiKey"]
         ?? throw new InvalidOperationException("GoogleVision:ApiKey is not configured.");
 
-    public async Task<OcrResult> ExtractAsync(Stream imageStream)
+    /// <summary>
+    /// Matches the controller's upload limit. Guards the buffer independently of the controller
+    /// so this service cannot be handed an unbounded stream from anywhere else.
+    /// </summary>
+    private const int MaxImageBytes = 6 * 1024 * 1024;
+
+    public async Task<OcrExtraction> ExtractAsync(Stream imageStream, CancellationToken cancellationToken = default)
     {
-        var bytes = await ReadAllBytesAsync(imageStream);
-        var base64 = Convert.ToBase64String(bytes);
+        // Rented rather than allocated: a 6MB array per upload on a small container is the
+        // difference between serving concurrent verifications and dying of GC pressure.
+        var buffer = ArrayPool<byte>.Shared.Rent(MaxImageBytes);
+        int length;
+        string imageHash;
+        string base64;
+
+        try
+        {
+            length = await ReadBoundedAsync(imageStream, buffer, cancellationToken);
+            imageHash = hashingService.HashBytes(buffer.AsSpan(0, length));
+            base64 = Convert.ToBase64String(buffer, 0, length);
+        }
+        finally
+        {
+            // Clause 25.2 — the image bytes are zeroed and released before the call returns,
+            // whether or not the OCR request succeeded.
+            ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
+        }
+
+        var discardedAt = DateTime.UtcNow;
 
         var requestBody = new
         {
@@ -31,14 +57,14 @@ public class OcrService(IConfiguration config, HttpClient httpClient) : IOcrServ
         };
 
         var json = JsonSerializer.Serialize(requestBody);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         var response = await httpClient.PostAsync(
-            $"https://vision.googleapis.com/v1/images:annotate?key={_apiKey}", content);
+            $"https://vision.googleapis.com/v1/images:annotate?key={_apiKey}", content, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
-            var errorBody = await response.Content.ReadAsStringAsync();
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
             // 403 covers quota exhausted and billing disabled, 429 is rate limiting. None of
             // these are the caller's fault, so they must not surface as "bad request" — they
@@ -53,23 +79,39 @@ public class OcrService(IConfiguration config, HttpClient httpClient) : IOcrServ
             throw new InvalidOperationException($"Google Vision API error {(int)response.StatusCode}: {errorBody}");
         }
 
-        var responseJson = await response.Content.ReadAsStringAsync();
-        var doc = JsonDocument.Parse(responseJson);
+        var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
+        using var doc = JsonDocument.Parse(responseJson);
 
         var responses = doc.RootElement.GetProperty("responses")[0];
 
         if (!responses.TryGetProperty("fullTextAnnotation", out var annotation))
-            return new OcrResult(null, null, null, null, null);
+            return new OcrExtraction(new OcrResult(null, null, null, null, null), imageHash, discardedAt);
 
         var rawText = annotation.GetProperty("text").GetString() ?? string.Empty;
-        return ParseText(rawText);
+        return new OcrExtraction(ParseText(rawText), imageHash, discardedAt);
     }
 
-    private static async Task<byte[]> ReadAllBytesAsync(Stream stream)
+    /// <summary>
+    /// Fills <paramref name="buffer"/> from the stream, refusing anything larger. Reading into a
+    /// fixed buffer rather than copying to a MemoryStream keeps peak memory at one image.
+    /// </summary>
+    private static async Task<int> ReadBoundedAsync(Stream stream, byte[] buffer, CancellationToken cancellationToken)
     {
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-        return ms.ToArray();
+        var total = 0;
+
+        while (total < buffer.Length)
+        {
+            var read = await stream.ReadAsync(buffer.AsMemory(total), cancellationToken);
+            if (read == 0) return total;
+            total += read;
+        }
+
+        // Buffer is full: if there is another byte, the upload exceeded the limit.
+        if (stream.ReadByte() != -1)
+            throw new InvalidOperationException(
+                $"Image exceeds the {MaxImageBytes / (1024 * 1024)}MB limit.");
+
+        return total;
     }
 
     private static OcrResult ParseText(string text)

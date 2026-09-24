@@ -8,7 +8,10 @@ import type { VerificationResult } from '@/types'
  * page, the hero panel is unreviewable. DEV-only, gated in App.tsx.
  */
 
-const BASE: Omit<VerificationResult, 'status' | 'riskScore' | 'reportCount' | 'matchFound'> = {
+const BASE: Omit<
+  VerificationResult,
+  'status' | 'riskScore' | 'reportCount' | 'matchFound' | 'pendingReportCount'
+> = {
   driverName: 'Thabo Nkosi',
   registrationNumber: 'GP12ABGP',
   phoneNumber: '0821234567',
@@ -16,9 +19,18 @@ const BASE: Omit<VerificationResult, 'status' | 'riskScore' | 'reportCount' | 'm
 }
 
 const RESULTS: { title: string; result: VerificationResult }[] = [
-  { title: 'Safe', result: { ...BASE, status: 'Safe', riskScore: 12, reportCount: 0, matchFound: true } },
-  { title: 'Under Review', result: { ...BASE, status: 'UnderReview', riskScore: 44, reportCount: 2, matchFound: true } },
-  { title: 'Flagged', result: { ...BASE, status: 'Flagged', riskScore: 68, reportCount: 6, matchFound: true } },
+  {
+    title: 'Safe',
+    result: { ...BASE, status: 'Safe', riskScore: 12, reportCount: 0, pendingReportCount: 0, matchFound: true },
+  },
+  {
+    // The case the pending-report disclosure exists for: nothing corroborated, so the band is
+    // Safe, but reports are sitting unread. Before this it rendered as an unqualified "Safe".
+    title: 'Safe, with reports awaiting review',
+    result: { ...BASE, status: 'Safe', riskScore: 0, reportCount: 0, pendingReportCount: 3, matchFound: true },
+  },
+  { title: 'Under Review', result: { ...BASE, status: 'UnderReview', riskScore: 44, reportCount: 2, pendingReportCount: 1, matchFound: true } },
+  { title: 'Flagged', result: { ...BASE, status: 'Flagged', riskScore: 68, reportCount: 6, pendingReportCount: 0, matchFound: true } },
   {
     title: 'High Risk',
     result: {
@@ -28,6 +40,7 @@ const RESULTS: { title: string; result: VerificationResult }[] = [
       status: 'HighRisk',
       riskScore: 91,
       reportCount: 17,
+      pendingReportCount: 0,
       matchFound: true,
     },
   },
@@ -38,6 +51,7 @@ const RESULTS: { title: string; result: VerificationResult }[] = [
       registrationNumber: 'CA99ZZGP',
       status: 'Safe',
       riskScore: 0,
+      pendingReportCount: 0,
       reportCount: 0,
       matchFound: false,
     },
