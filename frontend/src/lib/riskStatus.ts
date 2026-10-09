@@ -1,5 +1,5 @@
 import { ShieldCheck, Clock, ShieldAlert, OctagonAlert, SearchX, type LucideIcon } from 'lucide-react'
-import type { DriverStatus } from '@/types'
+import type { DriverStatus, ReportSeverity } from '@/types'
 import type { RingTone } from '@/components/ui/verification-ring'
 
 /**
@@ -100,4 +100,20 @@ export function scoreTone(score: number): RingTone {
   if (score < 60) return 'review'
   if (score < 80) return 'flagged'
   return 'highrisk'
+}
+
+/**
+ * Severity band → the same tone ramp the status badges use, so "High" on a report reads at the
+ * same temperature as "Flagged" on a driver.
+ *
+ * Three pages had each grown a private map onto the legacy success/warning/destructive
+ * variants, which paints High and Critical the same colour — the two bands a passenger most
+ * needs to tell apart. CommunityReportsPage reads from here; the moderator queue and the
+ * passenger dashboard still carry their own copies and should move across.
+ */
+export const SEVERITY_TONE: Record<ReportSeverity, RingTone> = {
+  Low: 'safe',
+  Medium: 'review',
+  High: 'flagged',
+  Critical: 'highrisk',
 }
