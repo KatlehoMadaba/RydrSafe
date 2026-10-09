@@ -40,8 +40,24 @@ namespace RydrSafe.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<bool>("PublicStatusSuspended")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("RightOfReplyOfferedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("RightOfReplyRespondedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RightOfReplyResponse")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
                     b.Property<int>("RiskScore")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("Section18NoticeSentAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -52,7 +68,90 @@ namespace RydrSafe.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("PhoneNumber");
+
+                    b.HasIndex("RiskScore");
+
                     b.ToTable("Drivers");
+                });
+
+            modelBuilder.Entity("RydrSafe.Domain.Entities.DriverAppeal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AssignedTo")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContactEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<Guid>("DriverId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("DueAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Grounds")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("IdentityEvidenceNote")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<bool>("IdentityVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("IdentityVerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("IdentityVerifiedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Outcome")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<bool>("PublicStatusSuspended")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ResolvedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContactEmail");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("DriverId", "Status");
+
+                    b.ToTable("DriverAppeals");
                 });
 
             modelBuilder.Entity("RydrSafe.Domain.Entities.DriverFollow", b =>
@@ -78,6 +177,103 @@ namespace RydrSafe.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("DriverFollows");
+                });
+
+            modelBuilder.Entity("RydrSafe.Domain.Entities.DriverRecordAccessLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DriverId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LookupTermHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<bool>("Matched")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RequesterIpHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Surface")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("RequesterIpHash", "CreatedAt");
+
+                    b.ToTable("DriverRecordAccessLogs");
+                });
+
+            modelBuilder.Entity("RydrSafe.Domain.Entities.DriverStatusAudit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DriverId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FromStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<Guid?>("RelatedAppealId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ReviewedDriverResponse")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ReviewedRiskScore")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ReviewedScoringLogic")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("RightOfReplyOffered")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("RightOfReplyOfferedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("RiskScoreAtDecision")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("DriverId", "CreatedAt");
+
+                    b.ToTable("DriverStatusAudits");
                 });
 
             modelBuilder.Entity("RydrSafe.Domain.Entities.Notification", b =>
@@ -106,7 +302,7 @@ namespace RydrSafe.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "CreatedAt");
 
                     b.ToTable("Notifications");
                 });
@@ -158,6 +354,27 @@ namespace RydrSafe.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Classification")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CorroboratedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CorroboratedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CorroborationPath")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("CorroborationRevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CorroborationRevokedReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -171,8 +388,59 @@ namespace RydrSafe.Infrastructure.Migrations
                     b.Property<DateTime>("IncidentDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("IncidentDatePrecision")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsAnonymous")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("OfficialReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("OfficialReferenceVerified")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("OfficialReferenceVerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("OfficialReferenceVerifiedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PublicRecordSourceReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("PublicRecordSourceType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("PublicRecordSourceUrl")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTime?>("PublicRecordVerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("PublicRecordVerifiedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ReclassifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ReclassifiedBy")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("ReportedToPolice")
                         .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ReporterDeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReporterKeyHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("Severity")
                         .IsRequired()
@@ -182,16 +450,80 @@ namespace RydrSafe.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<string>("SubmissionDeviceHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("SubmissionIpHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("WithdrawnAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DriverId");
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("Status");
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("DriverId", "Status");
+
                     b.ToTable("Reports");
+                });
+
+            modelBuilder.Entity("RydrSafe.Domain.Entities.ReportStatusAudit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FromStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<Guid?>("RelatedAppealId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ReportId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ReviewedDriverResponse")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ReviewedReportContent")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("ReviewedRiskScore")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("ReportId", "CreatedAt");
+
+                    b.ToTable("ReportStatusAudits");
                 });
 
             modelBuilder.Entity("RydrSafe.Domain.Entities.User", b =>
@@ -200,8 +532,25 @@ namespace RydrSafe.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("AcceptedAgreementAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("AcceptedAgreementVersion")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ClosureReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -233,6 +582,57 @@ namespace RydrSafe.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("RydrSafe.Domain.Entities.UserConsent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Accepted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("AgreementVersion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("CollectionSurface")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ConsentKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)");
+
+                    b.Property<string>("Locale")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("WithdrawnAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcceptedAt");
+
+                    b.HasIndex("UserId", "ConsentKey", "AcceptedAt");
+
+                    b.ToTable("UserConsents");
                 });
 
             modelBuilder.Entity("RydrSafe.Domain.Entities.Vehicle", b =>
@@ -287,6 +687,19 @@ namespace RydrSafe.Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<string>("ImageHashes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("ImagesDiscardedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("OcrDataPurgedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("OcrDataRetainedUntil")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("RegistrationNumber")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -307,9 +720,22 @@ namespace RydrSafe.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("OcrDataRetainedUntil");
+
+                    b.HasIndex("UserId", "VerifiedAt");
 
                     b.ToTable("VerificationHistories");
+                });
+
+            modelBuilder.Entity("RydrSafe.Domain.Entities.DriverAppeal", b =>
+                {
+                    b.HasOne("RydrSafe.Domain.Entities.Driver", "Driver")
+                        .WithMany("Appeals")
+                        .HasForeignKey("DriverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Driver");
                 });
 
             modelBuilder.Entity("RydrSafe.Domain.Entities.DriverFollow", b =>
@@ -329,6 +755,17 @@ namespace RydrSafe.Infrastructure.Migrations
                     b.Navigation("Driver");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RydrSafe.Domain.Entities.DriverStatusAudit", b =>
+                {
+                    b.HasOne("RydrSafe.Domain.Entities.Driver", "Driver")
+                        .WithMany()
+                        .HasForeignKey("DriverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Driver");
                 });
 
             modelBuilder.Entity("RydrSafe.Domain.Entities.Notification", b =>
@@ -364,10 +801,31 @@ namespace RydrSafe.Infrastructure.Migrations
                     b.HasOne("RydrSafe.Domain.Entities.User", "User")
                         .WithMany("Reports")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Driver");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RydrSafe.Domain.Entities.ReportStatusAudit", b =>
+                {
+                    b.HasOne("RydrSafe.Domain.Entities.Report", "Report")
+                        .WithMany("StatusAudits")
+                        .HasForeignKey("ReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Report");
+                });
+
+            modelBuilder.Entity("RydrSafe.Domain.Entities.UserConsent", b =>
+                {
+                    b.HasOne("RydrSafe.Domain.Entities.User", "User")
+                        .WithMany("Consents")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -396,13 +854,22 @@ namespace RydrSafe.Infrastructure.Migrations
 
             modelBuilder.Entity("RydrSafe.Domain.Entities.Driver", b =>
                 {
+                    b.Navigation("Appeals");
+
                     b.Navigation("Reports");
 
                     b.Navigation("Vehicles");
                 });
 
+            modelBuilder.Entity("RydrSafe.Domain.Entities.Report", b =>
+                {
+                    b.Navigation("StatusAudits");
+                });
+
             modelBuilder.Entity("RydrSafe.Domain.Entities.User", b =>
                 {
+                    b.Navigation("Consents");
+
                     b.Navigation("Notifications");
 
                     b.Navigation("Reports");

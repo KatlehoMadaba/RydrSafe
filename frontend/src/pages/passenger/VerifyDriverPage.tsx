@@ -37,11 +37,19 @@ export function VerifyDriverPage() {
   const [driverName, setDriverName] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
 
+  /**
+   * OCR on a rideshare screenshot misreads a registration often enough that a wrong result is a
+   * normal outcome, not an edge case. Without this the only way out is "Verify Another Driver",
+   * which clears everything and makes the user re-upload to fix one character.
+   */
+  const [correcting, setCorrecting] = useState(false)
+
   const { user } = useAuth()
 
   const onSuccess = (data: VerificationResult) => {
     setResult(data)
     setPhase('result')
+    setCorrecting(false)
   }
   const onError = () => {
     toast.error('Verification failed. Please try again.')
@@ -103,6 +111,18 @@ export function VerifyDriverPage() {
   }
   const removeFile = (i: number) => setFiles((prev) => prev.filter((_, idx) => idx !== i))
 
+  /**
+   * Removing from the confirm step can empty the list, and a confirm screen with nothing on it
+   * offers a "Confirm & Verify" button that cannot work. Drop back to upload instead.
+   */
+  const removeFileAtConfirm = (i: number) => {
+    // Computed outside the updater: a state updater has to be pure, and StrictMode runs it
+    // twice, so a setPhase call in there would fire during a render pass.
+    const next = files.filter((_, idx) => idx !== i)
+    setFiles(next)
+    if (next.length === 0) setPhase('upload')
+  }
+
   const canContinue = mode === 'screenshot' ? files.length > 0 : regNumber.trim().length > 0
 
   const submitVerification = () => {
@@ -118,6 +138,15 @@ export function VerifyDriverPage() {
     setRegNumber('')
     setDriverName('')
     setPhoneNumber('')
+    setCorrecting(false)
+  }
+
+  /** Seed the correction fields from whatever was read off the screenshot, then let them be fixed. */
+  const startCorrecting = () => {
+    setRegNumber(result?.registrationNumber ?? '')
+    setDriverName(result?.driverName ?? '')
+    setPhoneNumber(result?.phoneNumber ?? '')
+    setCorrecting(true)
   }
 
   const stepperStep = phase === 'upload' ? 1 : phase === 'confirm' ? 2 : 3
@@ -175,7 +204,7 @@ export function VerifyDriverPage() {
           <CardContent className="space-y-4 pt-6">
             <CardDescription>Check these details before we search community reports.</CardDescription>
             {mode === 'screenshot' ? (
-              <ScreenshotThumbnails files={files} />
+              <ScreenshotThumbnails files={files} onRemove={removeFileAtConfirm} />
             ) : (
               <dl className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -209,6 +238,43 @@ export function VerifyDriverPage() {
       {phase === 'result' && result && (
         <div className="space-y-4">
           <VerificationResultPanel result={result} />
+
+          {correcting ? (
+            <Card>
+              <CardContent className="space-y-3 pt-6">
+                <CardDescription>
+                  Correct anything we read wrong, then check again. The registration number is what
+                  the search actually matches on.
+                </CardDescription>
+                <ManualLookupForm
+                  regNumber={regNumber}
+                  driverName={driverName}
+                  phoneNumber={phoneNumber}
+                  onRegNumberChange={setRegNumber}
+                  onDriverNameChange={setDriverName}
+                  onPhoneNumberChange={setPhoneNumber}
+                />
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => setCorrecting(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={() => manualMutation.mutate()}
+                    disabled={!regNumber.trim()}
+                    isLoading={manualMutation.isPending}
+                  >
+                    Check again
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Button variant="outline" className="w-full" onClick={startCorrecting}>
+              <PenLine className="h-4 w-4" />
+              These details are wrong — correct them
+            </Button>
+          )}
 
           {canFollow && result.driverId && <FollowDriverButton driverId={result.driverId} />}
 

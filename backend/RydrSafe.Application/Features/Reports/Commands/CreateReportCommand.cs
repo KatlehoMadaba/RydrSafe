@@ -1,7 +1,7 @@
 using FluentValidation;
 using MediatR;
+using RydrSafe.Application.Common.Exceptions;
 using RydrSafe.Application.Common.Interfaces;
-using RydrSafe.Application.DTOs;
 using RydrSafe.Domain.Entities;
 using RydrSafe.Domain.Enums;
 using RydrSafe.Domain.Services;
@@ -16,7 +16,13 @@ public record CreateReportCommand(
     string Severity,
     string Description,
     DateTime IncidentDate,
-    bool ReportedToPolice = false) : IRequest<Guid>;
+    bool ReportedToPolice = false,
+    string? OfficialReference = null,
+    string? DeviceFingerprint = null,
+    string? IpAddress = null,
+    bool IsAnonymous = false,
+    IncidentDatePrecision IncidentDatePrecision = Domain.Enums.IncidentDatePrecision.Day)
+    : IRequest<Guid>;
 
 public class CreateReportCommandValidator : AbstractValidator<CreateReportCommand>
 {
@@ -29,7 +35,8 @@ public class CreateReportCommandValidator : AbstractValidator<CreateReportComman
         RuleFor(x => x.Severity).NotEmpty().Must(s => Enum.TryParse<ReportSeverity>(s, out _))
             .WithMessage("Invalid severity.");
         RuleFor(x => x.Description).NotEmpty().MaximumLength(2000);
-        RuleFor(x => x.IncidentDate).LessThanOrEqualTo(DateTime.Now);
+        RuleFor(x => x.IncidentDate).LessThanOrEqualTo(_ => DateTime.UtcNow);
+        RuleFor(x => x.OfficialReference).MaximumLength(100);
     }
 }
 
@@ -38,11 +45,21 @@ public class CreateReportCommandHandler(
     IDriverRepository driverRepository,
     IVehicleRepository vehicleRepository,
     IRiskScoringService riskScoringService,
-    IRealtimeNotificationService realtimeNotificationService) : IRequestHandler<CreateReportCommand, Guid>
+    IRealtimeNotificationService realtimeNotificationService,
+    ICategoryAGate categoryAGate,
+    IHashingService hashingService) : IRequestHandler<CreateReportCommand, Guid>
 {
     public async Task<Guid> Handle(CreateReportCommand request, CancellationToken cancellationToken)
     {
-        // Look up driver by registration number; create if this is the first report about them
+        var category = Enum.Parse<ReportCategory>(request.Category);
+        var classification = ReportClassificationPolicy.Classify(category);
+
+        // POPIA s58(2): while prior authorisation is outstanding, Category A reports may not be
+        // processed at all. Refusing at submission is the only way to honour that — accepting
+        // and storing the report would already be processing.
+        if (classification == ReportClassification.CategoryA && !categoryAGate.IsProcessingEnabled)
+            throw new CategoryAProcessingDisabledException(categoryAGate.DisabledReason);
+
         var driver = await driverRepository.GetByRegistrationNumberAsync(request.RegistrationNumber);
 
         if (driver is null)
@@ -67,21 +84,34 @@ public class CreateReportCommandHandler(
         {
             DriverId = driver.Id,
             UserId = request.UserId,
-            Category = Enum.Parse<ReportCategory>(request.Category),
+            Category = category,
+            Classification = classification,
             Severity = Enum.Parse<ReportSeverity>(request.Severity),
             Description = request.Description,
             IncidentDate = DateTime.SpecifyKind(request.IncidentDate, DateTimeKind.Utc),
-            ReportedToPolice = request.ReportedToPolice
+            IncidentDatePrecision = request.IncidentDatePrecision,
+            ReportedToPolice = request.ReportedToPolice,
+            OfficialReference = string.IsNullOrWhiteSpace(request.OfficialReference)
+                ? null
+                : request.OfficialReference.Trim(),
+            // Clause 6.3(a) independence signals. Hashed here so the raw address and
+            // fingerprint never reach the database.
+            SubmissionIpHash = hashingService.HashIdentifier(request.IpAddress),
+            SubmissionDeviceHash = hashingService.HashIdentifier(request.DeviceFingerprint),
+            // Written now, not at deletion time: once the account row is gone there is nothing
+            // left to derive it from, and clause 6.3(a) still has to be able to tell two
+            // de-identified reports apart.
+            ReporterKeyHash = hashingService.HashIdentifier(request.UserId.ToString()),
+            IsAnonymous = request.IsAnonymous,
+            Status = ReportStatus.Pending
         };
 
         await reportRepository.AddAsync(report);
 
-        var newScore = await riskScoringService.CalculateAsync(driver.Id);
-        var reportCount = await reportRepository.CountActiveByDriverIdAsync(driver.Id);
-        var reportedToPolice = await reportRepository.HasPoliceReportAsync(driver.Id);
-
-        driver.RiskScore = newScore;
-        driver.Status = DriverStatusPolicy.Evaluate(newScore, reportCount, reportedToPolice);
+        // Clause 6.2: a new report has no effect on the driver's public standing. The score is
+        // recalculated because corroborating this report may have changed nothing, but the
+        // status band is only ever moved by a moderator (clause 7.3 / POPIA s71).
+        driver.RiskScore = await riskScoringService.CalculateAsync(driver.Id);
         driver.UpdatedAt = DateTime.UtcNow;
         await driverRepository.UpdateAsync(driver);
 
@@ -89,7 +119,7 @@ public class CreateReportCommandHandler(
         {
             await realtimeNotificationService.NotifyModeratorsAsync(
                 "Critical Report Submitted",
-                $"A critical report was submitted for driver {driver.DriverName}.");
+                $"A critical report was submitted for driver {driver.DriverName}. Awaiting moderation.");
         }
 
         return report.Id;

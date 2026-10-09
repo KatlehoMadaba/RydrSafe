@@ -7,6 +7,7 @@ import {
   Lightbulb,
   FileText,
   Car,
+  Gavel,
   Users,
   UserCheck,
   BarChart2,
@@ -60,6 +61,8 @@ export const NAV_CONFIG: Record<UserRole, RoleNavConfig> = {
       { to: '/moderator/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
       { to: '/moderator/reports', icon: FileText, label: 'Reports' },
       { to: '/moderator/drivers', icon: Car, label: 'Drivers' },
+      // Part C. Drivers can contest a flag, and someone has to see the queue.
+      { to: '/moderator/appeals', icon: Gavel, label: 'Appeals' },
       { to: '/moderator/notifications', icon: Bell, label: 'Notifications' },
     ],
   },

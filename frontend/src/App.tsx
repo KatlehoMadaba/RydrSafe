@@ -14,6 +14,9 @@ import { AdminLayout } from '@/layouts/AdminLayout'
 import { LoginPage } from '@/pages/public/LoginPage'
 import { RegisterPage } from '@/pages/public/RegisterPage'
 import { UnauthorizedPage } from '@/pages/public/UnauthorizedPage'
+import { DriverRightsPage } from '@/pages/public/DriverRightsPage'
+import { LegalPage } from '@/pages/public/LegalPage'
+import { CommunityReportsPage } from '@/pages/passenger/CommunityReportsPage'
 
 import { PassengerDashboardPage } from '@/pages/passenger/DashboardPage'
 import { VerifyDriverPage } from '@/pages/passenger/VerifyDriverPage'
@@ -25,6 +28,7 @@ import { ProfilePage } from '@/pages/passenger/ProfilePage'
 import { ModeratorDashboardPage } from '@/pages/moderator/ModeratorDashboardPage'
 import { ModeratorReportsPage } from '@/pages/moderator/ReportsPage'
 import { ModeratorDriversPage } from '@/pages/moderator/DriversPage'
+import { ModeratorAppealsPage } from '@/pages/moderator/AppealsPage'
 
 import { NotificationsPage } from '@/pages/shared/NotificationsPage'
 
@@ -63,6 +67,11 @@ export default function App() {
                 <Route path="/verify" element={<VerifyDriverPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                {/* Part C. Drivers are not users of RydrSafe, so this is deliberately public. */}
+                <Route path="/driver-rights" element={<DriverRightsPage />} />
+                {/* The register form links here. Without this route the catch-all below sent
+                    people to /login, losing everything they had typed. */}
+                <Route path="/legal/user-agreement" element={<LegalPage />} />
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
               </Route>
 
@@ -73,6 +82,8 @@ export default function App() {
                   <Route path="/passenger/verify" element={<VerifyDriverPage />} />
                   <Route path="/passenger/report" element={<ReportDriverPage />} />
                   <Route path="/passenger/history" element={<HistoryPage />} />
+                  {/* Issue #43. Clause 6.4 — corroborated counts and bands only. */}
+                  <Route path="/passenger/community-reports" element={<CommunityReportsPage />} />
                   <Route path="/passenger/recommendations" element={<RecommendationsPage />} />
                   <Route path="/passenger/profile" element={<ProfilePage />} />
                   <Route path="/passenger/alerts" element={<NotificationsPage />} />
@@ -85,6 +96,7 @@ export default function App() {
                   <Route path="/moderator/dashboard" element={<ModeratorDashboardPage />} />
                   <Route path="/moderator/reports" element={<ModeratorReportsPage />} />
                   <Route path="/moderator/drivers" element={<ModeratorDriversPage />} />
+                  <Route path="/moderator/appeals" element={<ModeratorAppealsPage />} />
                   <Route path="/moderator/notifications" element={<NotificationsPage />} />
                 </Route>
               </Route>

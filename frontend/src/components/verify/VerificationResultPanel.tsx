@@ -83,6 +83,31 @@ export function VerificationResultPanel({ result, className }: { result: Verific
           )}
         </div>
 
+        {/*
+          The honest gap. Verification used to count only corroborated reports, so a driver with
+          three unread reports against them was shown as "Safe · 0 reports" — the app asserting
+          the opposite of what it knew. This says a report exists and that nobody has checked it,
+          which is a disclosure rather than an accusation. It deliberately does not move the risk
+          score or the status band: clause 6.2 reserves that for reports that cleared 6.3.
+        */}
+        {result.pendingReportCount > 0 && (
+          <div className="rounded-lg border border-l-4 border-review-muted border-l-review bg-review-soft p-3">
+            <p className="text-sm font-semibold text-review-strong">
+              {result.pendingReportCount} report{result.pendingReportCount === 1 ? '' : 's'} awaiting review
+            </p>
+            {result.pendingHighestSeverity && (
+              <p className="mt-1 text-xs text-review-strong">
+                Most serious reported: <span className="font-semibold">{result.pendingHighestSeverity}</span>{' '}
+                <span className="font-normal">— the reporter&apos;s own rating, not ours.</span>
+              </p>
+            )}
+            <p className="mt-1 text-xs text-review-strong/90">
+              Filed by other passengers but not yet checked by a moderator. No finding has been
+              made, and this does not affect the status or score above — treat it as unconfirmed.
+            </p>
+          </div>
+        )}
+
         <CommunityEvidence reportCount={result.reportCount} />
       </div>
     </div>

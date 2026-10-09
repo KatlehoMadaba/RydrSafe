@@ -7,9 +7,12 @@ import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Logo } from '@/components/Logo'
+import { CircleCheck } from 'lucide-react'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -21,7 +24,13 @@ export function LoginPage() {
   const { login, user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const redirect = location.state as { from?: string; prefill?: unknown } | null
+  const redirect = location.state as
+    | { from?: string; prefill?: unknown; accountDeleted?: string }
+    | null
+
+  // Set by the profile page after a successful deletion. Landing on a bare sign-in form with no
+  // acknowledgement is how people end up unsure whether the deletion actually happened.
+  const accountDeleted = redirect?.accountDeleted
 
   const {
     register,
@@ -66,6 +75,13 @@ export function LoginPage() {
         <CardDescription>Verify drivers before your next ride</CardDescription>
       </CardHeader>
       <CardContent>
+        {accountDeleted && (
+          <Alert variant="safe" className="mb-4">
+            <CircleCheck />
+            <AlertTitle>Your account has been deleted</AlertTitle>
+            <AlertDescription>{accountDeleted}</AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-1">
             <Label htmlFor="email">Email</Label>
@@ -74,7 +90,7 @@ export function LoginPage() {
           </div>
           <div className="space-y-1">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" placeholder="••••••••" {...register('password')} />
+            <PasswordInput id="password" placeholder="••••••••" {...register('password')} />
             {errors.password && <p className="text-xs text-highrisk">{errors.password.message}</p>}
           </div>
           <Button type="submit" className="w-full" isLoading={isSubmitting}>
