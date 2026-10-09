@@ -86,6 +86,59 @@ public record PublicReportSummaryDto(
     DateTime? LatestIncident
 );
 
+/// <summary>
+/// Clause 6.4 — a single corroborated report reduced to what another user may see. This is the
+/// grouped <see cref="PublicReportSummaryDto"/> broken back apart, so the driver page can show
+/// one card per incident rather than one row per category.
+///
+/// It carries no description, no reporter, and no date finer than the month, because clause 6.4
+/// forbids "any detail that would identify you or the specific trip" and an exact date on a
+/// named driver does exactly that. <see cref="CorroborationPath"/> is a statement about how
+/// RydrSafe confirmed the report, not a further allegation about the driver.
+/// </summary>
+public record PublicReportIncidentDto(
+    string Category,
+    string SeverityBand,
+    string CorroborationPath,
+
+    /// <summary>First instant of the month or year the incident falls in — never the exact day.</summary>
+    DateTime IncidentPeriod,
+
+    /// <summary>"Month" or "Year" — how much of <see cref="IncidentPeriod"/> the UI should render.</summary>
+    string IncidentPeriodPrecision
+);
+
+/// <summary>How many corroborated reports against a driver sit in one severity band.</summary>
+public record SeverityTallyDto(string SeverityBand, int Count);
+
+/// <summary>
+/// A driver as the community-reports browser sees them: every severity band that has been
+/// confirmed against them and how many reports sit in each, plus the clause 6.4 disclosure of
+/// reports nobody has reviewed yet.
+///
+/// Distinct from <c>DriverListDto</c> on purpose. That one carries a risk score and a status
+/// band, which are RydrSafe's own findings; this one carries only what passengers reported.
+/// </summary>
+public record CommunityDriverDto(
+    Guid Id,
+    string DriverName,
+    string? RegistrationNumber,
+    IEnumerable<SeverityTallyDto> Severities,
+    int CorroboratedReportCount,
+
+    /// <summary>
+    /// Reports filed against this driver that no moderator has assessed. Disclosed for the same
+    /// reason verification discloses it — silence here would read as a clean record.
+    /// </summary>
+    int PendingReportCount,
+
+    /// <summary>
+    /// Highest severity among those unreviewed reports, as the reporters themselves chose it.
+    /// Never a RydrSafe finding; anything rendering it must say so.
+    /// </summary>
+    string? PendingHighestSeverity
+);
+
 /// <summary>Moderator decision payload. Clause 7.3(c) requires a reason and an actor on every change.</summary>
 public record ModerateReportRequest(
     string Reason,
