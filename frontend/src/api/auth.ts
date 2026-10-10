@@ -70,6 +70,17 @@ export const authApi = {
   refreshToken: (refreshToken: string) =>
     apiClient.post<AuthResponse>('/api/auth/refresh-token', { refreshToken }).then((r) => r.data),
   me: () => apiClient.get<User>('/api/auth/me').then((r) => r.data),
+
+  /**
+   * Resolves the same way whether or not the address has an account — the server will not say
+   * which, so the UI must not imply it either. Do not branch on the result.
+   */
+  forgotPassword: (email: string) =>
+    apiClient.post('/api/auth/forgot-password', { email }).then((r) => r.data),
+
+  /** Rejects an unknown, expired or already-used token with a single 401. */
+  resetPassword: (data: { token: string; newPassword: string }) =>
+    apiClient.post('/api/auth/reset-password', data).then((r) => r.data),
   myConsents: () =>
     apiClient.get<ConsentRecord[]>('/api/auth/me/consents').then((r) => r.data),
 

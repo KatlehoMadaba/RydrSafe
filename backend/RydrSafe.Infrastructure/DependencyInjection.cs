@@ -27,10 +27,12 @@ public static class DependencyInjection
         services.AddScoped<IAppealRepository, AppealRepository>();
         services.AddScoped<IDriverAccessLogRepository, DriverAccessLogRepository>();
         services.AddScoped<IRecommendationRepository, RecommendationRepository>();
+        services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
 
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddHttpClient<IOcrService, OcrService>();
+        services.AddHttpClient<IEmailService, ResendEmailService>();
         services.AddScoped<IRiskScoringService, RiskScoringService>();
         services.AddScoped<ICorroborationService, CorroborationService>();
         services.AddScoped<IRealtimeNotificationService, SignalRNotificationService>();

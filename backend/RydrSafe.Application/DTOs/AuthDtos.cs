@@ -70,3 +70,7 @@ public record DeleteAccountResponse(
     DateTime DeletedAt,
     string Message
 );
+
+public record ForgotPasswordRequest(string Email);
+
+public record ResetPasswordRequest(string Token, string NewPassword);

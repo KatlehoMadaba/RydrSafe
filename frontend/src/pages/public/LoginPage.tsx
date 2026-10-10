@@ -89,7 +89,12 @@ export function LoginPage() {
             {errors.email && <p className="text-xs text-highrisk">{errors.email.message}</p>}
           </div>
           <div className="space-y-1">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                Forgot password?
+              </Link>
+            </div>
             <PasswordInput id="password" placeholder="••••••••" {...register('password')} />
             {errors.password && <p className="text-xs text-highrisk">{errors.password.message}</p>}
           </div>
