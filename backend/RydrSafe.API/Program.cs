@@ -205,4 +205,22 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
 
+// Swagger used to be served here, so the root was the de facto "is it alive?" page. Hiding it
+// in production left nothing at `/`, and a bare 404 at the root of an API reads as a broken
+// deployment even when every route below it is fine.
+//
+// Deliberately says nothing about versions, environment or configuration: this is reachable by
+// anyone, and a liveness probe is not a place to describe the inside of the service.
+app.MapGet("/", () => Results.Ok(new
+{
+    service = "RydrSafe API",
+    status = "ok",
+    utcTime = DateTime.UtcNow
+})).AllowAnonymous();
+
+// Separate from `/` so Render's health check keeps working if the root is ever given to
+// something else. Touches no dependency on purpose — it answers "is the process up", and a
+// probe that fails when the database blips would have Render restart a healthy container.
+app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
+
 app.Run();
