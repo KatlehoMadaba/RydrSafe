@@ -127,7 +127,7 @@ export function AppShell({ role }: { role: UserRole }) {
             className="fixed inset-x-0 bottom-0 z-40 flex h-16 items-center justify-around border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
             aria-label="Primary"
           >
-            {config.nav.map(({ to, icon: Icon, label }) => (
+            {config.nav.map(({ to, icon: Icon, label, shortLabel }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -136,7 +136,7 @@ export function AppShell({ role }: { role: UserRole }) {
                 }
               >
                 <Icon className="h-5 w-5" />
-                {label}
+                {shortLabel ?? label}
               </NavLink>
             ))}
           </nav>

@@ -6,6 +6,8 @@ import type {
   ReportSeverity,
   ReportClassification,
   PublicReportSummary,
+  PublicReportIncident,
+  CommunityDriver,
   ReportStatusAudit,
 } from '@/types'
 
@@ -54,6 +56,18 @@ export const reportsApi = {
   getPublicSummary: (driverId: string) =>
     apiClient
       .get<PublicReportSummary[]>(`/api/reports/driver/${driverId}/public-summary`)
+      .then((r) => r.data),
+
+  /** Clause 6.4, one entry per corroborated report instead of one per category. */
+  getPublicIncidents: (driverId: string) =>
+    apiClient
+      .get<PublicReportIncident[]>(`/api/reports/driver/${driverId}/public-incidents`)
+      .then((r) => r.data),
+
+  /** Drivers with their per-severity tallies, for the community-reports browser. */
+  getCommunityDrivers: (params: { search?: string; page?: number; pageSize?: number }) =>
+    apiClient
+      .get<PaginatedResponse<CommunityDriver>>('/api/reports/community/drivers', { params })
       .then((r) => r.data),
 
   getAudits: (id: string) =>

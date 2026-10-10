@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   Search,
-  Flag,
   Bell,
   User,
   Lightbulb,
@@ -19,6 +18,12 @@ export interface NavItem {
   to: string
   icon: LucideIcon
   label: string
+  /**
+   * What the passenger bottom bar shows instead of {@link label}. The bar gives each entry
+   * flex-1, so anything longer than "Alerts" truncates on a 360px screen — a destination whose
+   * real name doesn't fit gets a short form here rather than a shortened name everywhere.
+   */
+  shortLabel?: string
 }
 
 export interface RoleNavConfig {
@@ -43,7 +48,15 @@ export const NAV_CONFIG: Record<UserRole, RoleNavConfig> = {
     nav: [
       { to: '/passenger/dashboard', icon: LayoutDashboard, label: 'Home' },
       { to: '/passenger/verify', icon: Search, label: 'Verify' },
-      { to: '/passenger/report', icon: Flag, label: 'Report' },
+      // Was a 'Report' shortcut straight to the submission form. Community Reports is where a
+      // passenger actually starts — read what others reported, then report from the driver's
+      // own card. The form is still reachable at /passenger/report, just no longer the entry.
+      {
+        to: '/passenger/community-reports',
+        icon: Users,
+        label: 'Community Reports',
+        shortLabel: 'Reports',
+      },
       { to: '/passenger/alerts', icon: Bell, label: 'Alerts' },
       // Sixth item: the bottom bar gives each entry flex-1, so this narrows the others
       // rather than overflowing. Keep the label short — anything longer than "Alerts"

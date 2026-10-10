@@ -123,6 +123,43 @@ export interface PublicReportSummary {
   latestIncident?: string | null
 }
 
+/**
+ * Clause 6.4 ungrouped — one corroborated report rather than one category. Same disclosure as
+ * {@link PublicReportSummary}, just not summed: still no description and no reporter.
+ */
+export interface PublicReportIncident {
+  category: ReportCategory
+  severityBand: ReportSeverity
+  corroborationPath: CorroborationPath
+  /** Start of the month or year the incident falls in — the API never sends an exact day. */
+  incidentPeriod: string
+  incidentPeriodPrecision: 'Month' | 'Year'
+}
+
+/** How many confirmed reports against a driver sit in one severity band. */
+export interface SeverityTally {
+  severityBand: ReportSeverity
+  count: number
+}
+
+/**
+ * A driver as the community-reports browser sees them. Deliberately not a {@link DriverListItem}:
+ * that carries `riskScore` and `status`, which are RydrSafe's own findings. This page shows what
+ * passengers reported, so it carries severity tallies instead.
+ */
+export interface CommunityDriver {
+  id: string
+  driverName: string
+  registrationNumber: string | null
+  /** Worst band first. Empty where nothing has been confirmed. */
+  severities: SeverityTally[]
+  corroboratedReportCount: number
+  /** Reports filed that no moderator has assessed. Excluded from every band above. */
+  pendingReportCount: number
+  /** Reporter-chosen, never assessed — never render it as a RydrSafe finding. */
+  pendingHighestSeverity: ReportSeverity | null
+}
+
 export interface ReportStatusAudit {
   id: string
   actorUserId: string

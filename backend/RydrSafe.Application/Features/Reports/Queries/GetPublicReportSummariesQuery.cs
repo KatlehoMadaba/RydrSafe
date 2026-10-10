@@ -32,11 +32,7 @@ public class GetPublicReportSummariesQueryHandler(
     internal static List<PublicReportSummaryDto> Build(
         IEnumerable<Report> corroborated, bool categoryAPublicationEnabled)
     {
-        var visible = corroborated.Where(r =>
-            r.Status == ReportStatus.Corroborated
-            && (categoryAPublicationEnabled || r.Classification == ReportClassification.CategoryB));
-
-        return visible
+        return PublishableReports.Filter(corroborated, categoryAPublicationEnabled)
             .GroupBy(r => r.Category)
             .Select(g => new PublicReportSummaryDto(
                 g.Key.ToString(),

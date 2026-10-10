@@ -81,6 +81,32 @@ public class ReportsController(IMediator mediator) : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Clause 6.4, one card per corroborated report instead of one row per category. Same
+    /// disclosure, ungrouped — still no description and no reporter. Any signed-in user.
+    /// </summary>
+    [HttpGet("driver/{driverId:guid}/public-incidents")]
+    public async Task<IActionResult> GetPublicIncidents(Guid driverId)
+    {
+        var result = await mediator.Send(new GetPublicReportIncidentsQuery(driverId));
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Drivers for the community-reports browser, each with a per-severity tally of confirmed
+    /// reports and a count of reports still awaiting review. Any signed-in user.
+    /// </summary>
+    [HttpGet("community/drivers")]
+    public async Task<IActionResult> GetCommunityDrivers(
+        [FromQuery] string? search = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        if (page < 1) return BadRequest("page must be at least 1.");
+        if (pageSize is < 1 or > 100) return BadRequest("pageSize must be between 1 and 100.");
+
+        var result = await mediator.Send(new GetCommunityDriversQuery(search, page, pageSize));
+        return Ok(result);
+    }
+
     [HttpGet("{id:guid}/audits")]
     [Authorize(Roles = "Moderator,Admin")]
     public async Task<IActionResult> GetAudits(Guid id)
