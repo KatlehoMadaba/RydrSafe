@@ -13,7 +13,10 @@ namespace RydrSafe.API.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(IMediator mediator, IConsentRepository consentRepository) : ControllerBase
+public class AuthController(
+    IMediator mediator,
+    IConsentRepository consentRepository,
+    IConfiguration configuration) : ControllerBase
 {
     /// <summary>The agreement version this build serves. Recorded against every consent row.</summary>
     private const string CurrentAgreementVersion = "1.0";
@@ -37,6 +40,34 @@ public class AuthController(IMediator mediator, IConsentRepository consentReposi
             IpAddress: ClientIp()));
 
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Always 204, whether or not the address has an account. Telling the caller which is
+    /// which would make this an account-enumeration oracle. Rate limited for the same reason
+    /// it is silent: it sends mail on demand to an address the caller chooses.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        // The link has to point at the site the user is actually on — production, a preview,
+        // or localhost — so it is derived from the request Origin rather than hardcoded, and
+        // falls back to the configured front-end URL for a request that carries no Origin.
+        var origin = Request.Headers.Origin.FirstOrDefault()
+                     ?? configuration["FrontendUrl"]
+                     ?? "https://rydrsafe.co.za";
+
+        await mediator.Send(new RequestPasswordResetCommand(request.Email, origin));
+        return NoContent();
+    }
+
+    [HttpPost("reset-password")]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        await mediator.Send(new ResetPasswordCommand(request.Token, request.NewPassword));
+        return NoContent();
     }
 
     [HttpPost("login")]

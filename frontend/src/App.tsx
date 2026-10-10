@@ -14,6 +14,8 @@ import { AdminLayout } from '@/layouts/AdminLayout'
 import { LoginPage } from '@/pages/public/LoginPage'
 import { RegisterPage } from '@/pages/public/RegisterPage'
 import { UnauthorizedPage } from '@/pages/public/UnauthorizedPage'
+import { ForgotPasswordPage } from '@/pages/public/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/pages/public/ResetPasswordPage'
 import { DriverRightsPage } from '@/pages/public/DriverRightsPage'
 import { LegalPage } from '@/pages/public/LegalPage'
 import { CommunityReportsPage } from '@/pages/passenger/CommunityReportsPage'
@@ -67,6 +69,9 @@ export default function App() {
                 <Route path="/verify" element={<VerifyDriverPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                {/* The token arrives as ?token=… from the reset email. */}
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 {/* Part C. Drivers are not users of RydrSafe, so this is deliberately public. */}
                 <Route path="/driver-rights" element={<DriverRightsPage />} />
                 {/* The register form links here. Without this route the catch-all below sent
