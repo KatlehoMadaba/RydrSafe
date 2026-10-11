@@ -211,7 +211,8 @@ app.MapHub<NotificationHub>("/hubs/notifications");
 //
 // Deliberately says nothing about versions, environment or configuration: this is reachable by
 // anyone, and a liveness probe is not a place to describe the inside of the service.
-app.MapGet("/", () => Results.Ok(new
+// GET and HEAD: Render's own checks issue HEAD, and MapGet alone answers those with 405.
+app.MapMethods("/", ["GET", "HEAD"], () => Results.Ok(new
 {
     service = "RydrSafe API",
     status = "ok",
@@ -221,6 +222,16 @@ app.MapGet("/", () => Results.Ok(new
 // Separate from `/` so Render's health check keeps working if the root is ever given to
 // something else. Touches no dependency on purpose — it answers "is the process up", and a
 // probe that fails when the database blips would have Render restart a healthy container.
-app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
+app.MapMethods("/health", ["GET", "HEAD"], () => Results.Ok(new { status = "ok" }))
+    .AllowAnonymous();
+
+// Swagger at RoutePrefix "" used to answer `/` with a 301 to `/index.html`. Browsers cache a
+// 301 indefinitely, so everyone who ever opened the Swagger UI still gets sent to a path that
+// no longer exists — the server is fine and the browser 404s on its own.
+//
+// Redirect rather than 404 so those cached clients land somewhere useful. Temporary (302), not
+// permanent: baking in a second permanent redirect to undo the first is how this started.
+app.MapMethods("/index.html", ["GET", "HEAD"], () => Results.Redirect("/", permanent: false))
+    .AllowAnonymous();
 
 app.Run();
