@@ -185,15 +185,30 @@ using (var scope = app.Services.CreateScope())
 
 app.UseForwardedHeaders();
 
-// Swagger exposes every moderation route and its schema. Useful in development, an unnecessary
-// map of the admin surface in production.
-if (app.Environment.IsDevelopment())
+// Swagger exposes every moderation route and its schema, so outside development it sits behind
+// HTTP Basic auth and only appears at all once credentials are configured. Set
+// Swagger__Username and Swagger__Password to turn it on; leave either unset and the path 404s.
+var swaggerUser = builder.Configuration["Swagger:Username"];
+var swaggerPassword = builder.Configuration["Swagger:Password"];
+var swaggerCredentialsConfigured =
+    !string.IsNullOrWhiteSpace(swaggerUser) && !string.IsNullOrWhiteSpace(swaggerPassword);
+
+if (app.Environment.IsDevelopment() || swaggerCredentialsConfigured)
 {
+    // No prompt locally — a password on your own machine buys nothing and slows you down.
+    if (!app.Environment.IsDevelopment())
+        app.UseMiddleware<SwaggerBasicAuthMiddleware>();
+
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "RydrSafe API v1");
-        c.RoutePrefix = string.Empty;
+
+        // Served at /swagger, never at the root. With RoutePrefix "" the UI answers `/` with a
+        // 301 to `/index.html`, browsers cache that permanently, and every one of them keeps
+        // requesting a path that disappears the moment Swagger is turned off. That is the bug
+        // this project already hit once; the root belongs to the liveness response below.
+        c.RoutePrefix = "swagger";
     });
 }
 
