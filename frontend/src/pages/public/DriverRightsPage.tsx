@@ -36,7 +36,7 @@ export function DriverRightsPage() {
     <div className="mx-auto w-full max-w-2xl space-y-6">
       <div className="text-center">
         <ShieldQuestion className="mx-auto h-10 w-10 text-blue-600" />
-        <h1 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="mt-2 text-2xl font-bold text-foreground">
           Driver rights
         </h1>
         <p className="mt-1 text-sm text-gray-500">

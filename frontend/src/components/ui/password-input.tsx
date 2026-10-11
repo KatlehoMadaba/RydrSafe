@@ -33,7 +33,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, Omit<InputProps,
           tabIndex={-1}
           aria-label={visible ? 'Hide password' : 'Show password'}
           aria-pressed={visible}
-          className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          className="absolute inset-y-0 right-0 flex items-center px-3 text-subtle hover:text-foreground"
         >
           {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>

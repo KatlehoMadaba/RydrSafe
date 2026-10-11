@@ -167,7 +167,7 @@ export function ModeratorReportsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Reports</h1>
+        <h1 className="text-2xl font-bold text-foreground">Reports</h1>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -188,7 +188,7 @@ export function ModeratorReportsPage() {
           <Card key={report.id}>
             <CardContent className="pt-4">
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="font-semibold text-foreground">
                   {report.category.replace(/([A-Z])/g, ' $1').trim()}
                 </span>
                 <Badge variant={severityVariant[report.severity]}>{report.severity}</Badge>
@@ -228,7 +228,7 @@ export function ModeratorReportsPage() {
                 )}
               </p>
 
-              <p className="text-sm text-gray-700 dark:text-gray-300">{report.description}</p>
+              <p className="text-sm text-foreground">{report.description}</p>
 
               {report.status === 'Corroborated' && (
                 <p className="mt-2 text-xs text-amber-700">
