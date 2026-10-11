@@ -135,7 +135,7 @@ export function ModeratorAppealsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Driver appeals</h1>
+      <h1 className="text-2xl font-bold text-foreground">Driver appeals</h1>
 
       {isLoading && <LoadingSpinner className="py-12" />}
 
@@ -148,7 +148,7 @@ export function ModeratorAppealsPage() {
           <Card key={appeal.id}>
             <CardContent className="pt-4">
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="font-semibold text-foreground">
                   {appeal.driverName}
                 </span>
                 <Badge variant={statusVariant[appeal.status]}>{appeal.status}</Badge>
@@ -170,7 +170,7 @@ export function ModeratorAppealsPage() {
                 {new Date(appeal.dueAt).toLocaleDateString()} · {appeal.contactEmail}
               </p>
 
-              <p className="text-sm text-gray-700 dark:text-gray-300">{appeal.detail}</p>
+              <p className="text-sm text-foreground">{appeal.detail}</p>
 
               {appeal.outcome && (
                 <p className="mt-2 rounded bg-gray-50 p-2 text-xs text-gray-600">

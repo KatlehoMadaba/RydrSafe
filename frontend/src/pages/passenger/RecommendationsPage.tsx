@@ -68,7 +68,7 @@ export function RecommendationsPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Recommendations</h1>
+        <h1 className="text-2xl font-bold text-foreground">Recommendations</h1>
         <p className="text-gray-500 mt-1">Tell us how we can make RydrSafe safer and easier to use.</p>
       </div>
 
@@ -116,7 +116,7 @@ export function RecommendationsPage() {
       </Card>
 
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Your Recommendations</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-3">Your Recommendations</h2>
 
         {isLoading && <LoadingSpinner className="py-12" />}
 
@@ -143,7 +143,7 @@ export function RecommendationsPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">{item.subject}</h3>
+                      <h3 className="font-semibold text-foreground truncate">{item.subject}</h3>
                       <Badge variant={statusVariants[item.status]}>{item.status}</Badge>
                     </div>
                     <p className="text-sm text-gray-500">{item.message}</p>
