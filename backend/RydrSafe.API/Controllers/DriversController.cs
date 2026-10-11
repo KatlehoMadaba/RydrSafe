@@ -11,9 +11,15 @@ namespace RydrSafe.API.Controllers;
 public class DriversController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? search = null)
     {
-        var result = await mediator.Send(new GetDriversQuery(page, pageSize));
+        if (page < 1) return BadRequest("page must be at least 1.");
+        if (pageSize is < 1 or > 100) return BadRequest("pageSize must be between 1 and 100.");
+
+        var result = await mediator.Send(new GetDriversQuery(page, pageSize, search));
         return Ok(result);
     }
 

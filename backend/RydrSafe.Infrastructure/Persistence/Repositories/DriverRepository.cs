@@ -9,18 +9,49 @@ public class DriverRepository(AppDbContext db) : IDriverRepository
     public async Task<Driver?> GetByIdAsync(Guid id) =>
         await db.Drivers.Include(d => d.Vehicles).Include(d => d.Reports).FirstOrDefaultAsync(d => d.Id == id);
 
-    public async Task<IEnumerable<Driver>> GetAllAsync(int page, int pageSize) =>
-        await db.Drivers.Include(d => d.Vehicles)
+    public async Task<IEnumerable<Driver>> GetAllAsync(int page, int pageSize, string? search = null) =>
+        await ApplySearch(db.Drivers.Include(d => d.Vehicles), search)
             .OrderByDescending(d => d.RiskScore)
+            // Tiebreaker: without one, drivers sharing a risk score have no defined order
+            // between queries, so paging can show the same row twice and skip another.
+            .ThenBy(d => d.Id)
             .Skip((page - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
     public async Task<IEnumerable<Driver>> SearchAsync(string query) =>
-        await db.Drivers.Include(d => d.Vehicles)
-            .Where(d => d.DriverName.ToLower().Contains(query.ToLower())
-                || d.Vehicles.Any(v => v.RegistrationNumber.ToLower().Contains(query.ToLower()))
-                || (d.PhoneNumber != null && d.PhoneNumber.Contains(query)))
+        await ApplySearch(db.Drivers.Include(d => d.Vehicles), query)
+            .OrderByDescending(d => d.RiskScore)
+            .ThenBy(d => d.Id)
             .ToListAsync();
+
+    /// <summary>
+    /// The single definition of "matches this search": driver name, any of their registration
+    /// numbers, or phone. The paged list, its count and the standalone search endpoint all go
+    /// through here, so a filtered page and its total cannot disagree about what matched.
+    ///
+    /// <c>ILike</c> rather than <c>ToLower().Contains()</c> — it is one case-insensitive
+    /// comparison in Postgres instead of lowering every row, and a pg_trgm GIN index can serve
+    /// it later. Today it is still a sequential scan; that is fine at this table size and is
+    /// the thing to revisit before the driver list grows.
+    /// </summary>
+    private static IQueryable<Driver> ApplySearch(IQueryable<Driver> drivers, string? search)
+    {
+        if (string.IsNullOrWhiteSpace(search)) return drivers;
+
+        // Escape LIKE wildcards before interpolating. Without this a search for "%" matches
+        // every driver and "_" matches any single character — user input, read as a pattern.
+        var escaped = search.Trim()
+            .Replace("\\", "\\\\")
+            .Replace("%", "\\%")
+            .Replace("_", "\\_");
+
+        var pattern = $"%{escaped}%";
+
+        return drivers.Where(d =>
+            EF.Functions.ILike(d.DriverName, pattern, "\\")
+            || d.Vehicles.Any(v => EF.Functions.ILike(v.RegistrationNumber, pattern, "\\"))
+            || (d.PhoneNumber != null && EF.Functions.ILike(d.PhoneNumber, pattern, "\\")));
+    }
 
     public async Task<Driver?> GetByRegistrationNumberAsync(string registrationNumber)
     {
@@ -52,7 +83,8 @@ public class DriverRepository(AppDbContext db) : IDriverRepository
         await db.SaveChangesAsync();
     }
 
-    public async Task<int> CountAsync() => await db.Drivers.CountAsync();
+    public async Task<int> CountAsync(string? search = null) =>
+        await ApplySearch(db.Drivers, search).CountAsync();
 
     public async Task<int> CountByStatusAsync(params RydrSafe.Domain.Enums.DriverStatus[] statuses) =>
         await db.Drivers.CountAsync(d => statuses.Contains(d.Status));

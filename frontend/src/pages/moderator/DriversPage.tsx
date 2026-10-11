@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { driversApi } from '@/api/drivers'
 import { Card, CardContent } from '@/components/ui/card'
@@ -14,10 +14,22 @@ import { Search, Car } from 'lucide-react'
 // drivers, not a card-per-driver consumer layout.
 export function ModeratorDriversPage() {
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  // The box is now wired to a real server-side filter, and that filter is an unindexed
+  // ILIKE '%…%' across drivers and vehicles. Querying on every keystroke would put one of
+  // those scans behind each character typed; a short pause does the same job for one.
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(timer)
+  }, [search])
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['drivers', search],
-    queryFn: () => driversApi.getAll({ search, pageSize: 50 }),
+    queryKey: ['drivers', debouncedSearch],
+    queryFn: () => driversApi.getAll({ search: debouncedSearch, pageSize: 50 }),
+    // Keeps the previous rows on screen while a new term is in flight, so the table does not
+    // blank out between keystrokes.
+    placeholderData: (previous) => previous,
   })
 
   return (
